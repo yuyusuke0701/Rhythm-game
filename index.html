@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>がくふがよめる！リズムマスターへの道</title>
+<!-- Supabase SDKの読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{background:#fde7a0}
@@ -35,10 +37,11 @@ button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--k3),0 3px 6px r
 button:disabled{opacity:.88;filter:saturate(.8)}
 button:disabled:active{transform:none;box-shadow:0 5px 0 var(--k3),0 9px 14px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.5)}
 .big{width:min(80%,420px);font-size:clamp(20px,6vh,32px);border-radius:22px;padding:14px 26px}
-button.big[disabled]{--k1:var(--q1);--k2:var(--q2);--k3:var(--q3)}
-#goPrac{--k1:var(--p1);--k2:var(--p2);--k3:var(--p3)}
+#goQuest{--k1:var(--p1);--k2:var(--p2);--k3:var(--p3)}
+#goPrac{--k1:var(--t1);--k2:var(--t2);--k3:var(--t3)}
 #goSet,#demoBtn,#mineBtn{--k1:var(--s1);--k2:var(--s2);--k3:var(--s3)}
 #back{--k1:var(--s1);--k2:var(--s2);--k3:var(--s3);position:fixed;left:8px;top:6px;z-index:5;font-size:15px;padding:5px 12px;border-radius:12px;box-shadow:0 3px 0 var(--k3),0 5px 8px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4)}
+#profileBtn{position:fixed;right:8px;top:6px;z-index:5;font-size:14px;padding:5px 12px;border-radius:12px;background:linear-gradient(180deg,var(--p1),var(--p2));box-shadow:0 3px 0 var(--p3),0 5px 8px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4)}
 #againBtn{--k1:#cfcfcf;--k2:#b3b3b3;--k3:#939393}
 .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
 /* 選択チップ: 未選択=白 / 選択中=テーマ色 */
@@ -57,6 +60,15 @@ select{font-size:clamp(15px,4vh,22px);padding:4px 8px;border-radius:10px;border:
 @media (min-aspect-ratio:1/1){.setrow{flex-direction:row;align-items:center;gap:8px}.setrow .nm{min-width:8.5em}.setrow .ctl{flex:1 1 auto}}
 button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 
+/* ===== アイコン選択・アカウント・ランキング用スタイル ===== */
+.icon-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:8px;max-height:180px;overflow-y:auto;padding:6px;width:100%;background:#fff;border-radius:12px;border:2px solid #ddd}
+.icon-item{font-size:28px;padding:6px;text-align:center;background:#f9f9f9;border-radius:10px;cursor:pointer;border:2px solid transparent}
+.icon-item.selected{border-color:var(--a2);background:var(--bg1)}
+.account-card{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:10px 16px;border-radius:14px;width:100%;max-width:400px;box-shadow:0 3px 10px rgba(0,0,0,.08);cursor:pointer;border:2px solid transparent}
+.account-card.active{border-color:var(--a2);background:#fffdf6}
+.ranking-list{width:100%;max-width:500px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;background:#fff;padding:10px;border-radius:14px}
+.ranking-item{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:#f7f7f7;border-radius:10px;font-size:16px}
+
 /* ===== 楽譜・結果 ===== */
 #score{width:100%;max-width:900px;background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
 #score svg{width:100%;height:auto;max-height:36vh;display:block}
@@ -72,7 +84,7 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
 #bigScore .lbl{font-size:clamp(16px,5vh,30px)}
 #detail{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 18px;font-size:clamp(13px,3.7vh,19px);color:#444;margin-top:2px}
 
-/* ===== TAPボタンと、押したときのエフェクト(周りが光って星がはじける) ===== */
+/* ===== TAPボタンとエフェクト ===== */
 #tapArea{position:relative;width:100%;text-align:center}
 #tap{--k1:var(--t1);--k2:var(--t2);--k3:var(--t3);width:min(96vw,760px);height:clamp(64px,22vh,140px);font-size:clamp(28px,9vh,52px);border-radius:999px;letter-spacing:.12em;touch-action:none;user-select:none;-webkit-user-select:none;
   box-shadow:0 8px 0 var(--k3),0 14px 26px var(--tglow),inset 0 4px 0 rgba(255,255,255,.5)}
@@ -99,16 +111,57 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
 </head>
 <body data-theme="2">
 <button id="back" style="display:none">← トップへ</button>
-<div id="popup" style="display:none"><div class="card"><div class="pt">練習モード<br>スタート！</div><div class="ps" id="popSub"></div><button id="popBtn">スタート</button></div></div>
+<button id="profileBtn">👤 プレーヤー</button>
+
+<div id="popup" style="display:none"><div class="card"><div class="pt" id="popTitle">練習モード<br>スタート！</div><div class="ps" id="popSub"></div><button id="popBtn">スタート</button></div></div>
 <div id="app">
 
+  <!-- TOP画面 -->
   <div class="screen on" id="sTop">
     <h1>がくふがよめる！<br>リズムマスターへの道</h1>
-    <button class="big" disabled>1. クエスト（準備中）</button>
-    <button class="big" id="goPrac" >2. 練習モード</button>
+    <button class="big" id="goQuest">1. クエスト＆ランキング</button>
+    <button class="big" id="goPrac">2. 練習モード</button>
     <button class="big" id="goSet">3. 設定</button>
   </div>
 
+  <!-- クエスト・ランキング画面 -->
+  <div class="screen pad" id="sQuest" style="gap:8px">
+    <h2>クエスト＆ランキング</h2>
+    <div class="row">
+      <button class="tg on" id="qBtn1">レベル1 (4分音符)</button>
+      <button class="tg" id="qBtn2">レベル2 (8分音符)</button>
+      <button class="tg" id="qBtn3">レベル3 (16分音符)</button>
+    </div>
+    <button id="startQuestBtn" style="padding:10px 40px;">クエスト出発！</button>
+    <h3 style="margin:4px 0 0 0;font-size:16px;">👑 全国ランキング</h3>
+    <div class="ranking-list" id="rankingList">読み込み中...</div>
+  </div>
+
+  <!-- アカウント選択・作成・引継ぎ画面 -->
+  <div class="screen pad" id="sAccount" style="gap:8px">
+    <h2>プレーヤーの選択・作成</h2>
+    <div id="accountList" style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:400px;align-items:center"></div>
+    <button id="showNewAccBtn" style="font-size:16px;padding:8px 20px;background:#888;">＋ 新しいプレーヤーを追加</button>
+    
+    <div class="panel" id="newAccPanel" style="display:none;width:100%;max-width:400px;gap:6px">
+      <div style="font-weight:bold;font-size:15px">アイコンをえらんでね</div>
+      <div class="icon-grid" id="iconGrid"></div>
+      <div style="width:100%;display:flex;gap:6px;align-items:center">
+        <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;padding:8px;font-size:16px;border-radius:10px;border:2px solid #ccc">
+        <button id="createAccBtn" style="font-size:16px;padding:8px 16px;">登録</button>
+      </div>
+    </div>
+
+    <div class="panel" style="width:100%;max-width:400px;gap:6px">
+      <div style="font-weight:bold;font-size:14px">ほかのスマホからデータをひきつぐ</div>
+      <div style="display:flex;gap:6px;width:100%">
+        <input type="text" id="secretCodeInput" placeholder="あいことばを入力" style="flex:1;padding:6px;font-size:14px;border-radius:8px;border:2px solid #ccc">
+        <button id="importAccBtn" style="font-size:14px;padding:6px 12px;">ひきつぐ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定画面 -->
   <div class="screen pad" id="sSet" style="gap:6px"><div class="panel">
     <h2>設定</h2>
     <div class="row">
@@ -119,14 +172,13 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
     <div class="setrow"><div class="nm">メトロノーム音量</div><div class="ctl"><button class="st" id="volMm">−</button><input type="range" id="volM" min="0" max="100" step="1" value="50"><button class="st" id="volMp">＋</button><span class="vv"><span id="volMv">50</span></span></div></div>
     <div class="setrow"><div class="nm">ピアノ音量</div><div class="ctl"><button class="st" id="volTm">−</button><input type="range" id="volT" min="0" max="100" step="1" value="50"><button class="st" id="volTp">＋</button><span class="vv"><span id="volTv">50</span></span></div></div>
     <div class="setrow"><div class="nm">タイミング補正</div><div class="ctl"><button class="st" id="ofsM">−</button><input type="range" id="ofsS" min="-100" max="200" step="1" value="0"><button class="st" id="ofsP">＋</button><span class="vv"><span id="ofsV">0</span>ms</span></div></div>
-    <div class="opt" style="font-size:13px;color:#777">※練習開始時の自動調整のあとに足す微調整です（遅めに判定されるときは大きく）</div>
-    <div class="opt" style="font-size:13px;color:#777">※お手本・自分の再生のピアノ音の音量です（自分でタップしたときは音は鳴りません）</div>
     <div class="row">
       <button class="tg on" id="testM">メトロノーム音テスト</button>
       <button class="tg on" id="testT">ピアノ音テスト</button>
     </div>
   </div></div>
 
+  <!-- 練習モードメニュー画面 -->
   <div class="screen pad" id="sPrac">
     <h2>練習モード</h2>
     <div class="opt">もんだい</div>
@@ -136,6 +188,7 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
     <button id="goBtn">スタート</button>
   </div>
 
+  <!-- ゲームプレイ画面 -->
   <div class="screen pad" id="sGame">
     <div id="score"><svg id="svg" viewBox="0 0 800 172"></svg></div>
     <div id="msg"></div>
@@ -157,11 +210,122 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
 (function(){
 "use strict";
 
-/* ===== 共通の時間軸（すべて「拍」単位。2小節＝8拍） ===== */
+/* ==========================================
+   Supabase 設定 (ご自身の情報に書き換えてください)
+   ========================================== */
+const SUPABASE_URL = 'https://cluingpqudgjhyjhegiy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdWluZ3BxdWRnamh5amhlZ2l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNzg0NTMsImV4cCI6MjEwNjk1NDQ1M30.6TyaxqKQwP-0c3sUbtlbUVX3XgQLg1nABvPoB26a9co';
+const supabaseClient = (SUPABASE_URL.includes('xxxx') || !window.supabase) ? null : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ===== 50種類のアイコンリスト ===== */
+const ICONS = ["🦁", "🐯", "🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐨", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦄", "🐉", "🦕", "🦖", "🐳", "🐬", "🐟", "🐙", "🦀", "🦞", "🍎", "🍊", "🍓", "🍉", "🍇", "🍒", "🍑", "🍍", "⭐", "🌙", "☀️", "⚡", "🔥", "💎", "🎸", "🎹", "🎺", "🎻", "🥁", "🎤"];
+
+/* ===== ユーザー・アカウント管理 ===== */
+let accounts = []; // ローカル保存されたアカウント一覧
+let currentAccount = null; // 現在選ばれているアカウント
+let isQuestMode = false;   // クエストモード中かフラグ
+let questLevel = 0;        // クエストのレベル
+
+function loadAccounts(){
+  try {
+    accounts = JSON.parse(localStorage.getItem("rhythm_accounts") || "[]");
+    let curId = localStorage.getItem("rhythm_current_id");
+    if(accounts.length > 0){
+      currentAccount = accounts.find(a => a.id === curId) || accounts[0];
+    } else {
+      // 初期アカウントがなければ自動作成
+      currentAccount = createDefaultAccount();
+    }
+  } catch(e){
+    currentAccount = createDefaultAccount();
+  }
+  updateProfileBtnUI();
+}
+
+function createDefaultAccount(icon = "🎹", nickname = "名無し"): object {
+  const newAcc = {
+    id: 'user_' + Math.random().toString(36).substring(2, 9),
+    secret_code: 'rc-' + Math.floor(1000 + Math.random() * 9000),
+    icon: icon,
+    nickname: nickname
+  };
+  accounts.push(newAcc);
+  saveAccountsToLocal();
+  syncAccountToSupabase(newAcc);
+  return newAcc;
+}
+
+function saveAccountsToLocal(){
+  localStorage.setItem("rhythm_accounts", JSON.stringify(accounts));
+  if(currentAccount) localStorage.setItem("rhythm_current_id", currentAccount.id);
+  updateProfileBtnUI();
+}
+
+function updateProfileBtnUI(){
+  const btn = document.getElementById("profileBtn");
+  if(currentAccount){
+    btn.textContent = currentAccount.icon + " " + currentAccount.nickname;
+  }
+}
+
+async function syncAccountToSupabase(acc){
+  if(!supabaseClient) return;
+  try {
+    await supabaseClient.from('profiles').upsert({
+      id: acc.id,
+      secret_code: acc.secret_code,
+      nickname: acc.nickname,
+      icon: acc.icon
+    });
+  } catch(e){ console.error(e); }
+}
+
+async function submitScoreToSupabase(scoreVal, modeStr){
+  if(!supabaseClient || !currentAccount) return;
+  try {
+    await supabaseClient.from('scores').insert({
+      user_id: currentAccount.id,
+      score: scoreVal,
+      mode: modeStr
+    });
+  } catch(e){ console.error(e); }
+}
+
+async function fetchRanking(){
+  const listEl = document.getElementById("rankingList");
+  if(!supabaseClient){
+    listEl.innerHTML = '<div style="text-align:center;color:#777">Supabase未設定です</div>';
+    return;
+  }
+  listEl.innerHTML = '<div style="text-align:center;color:#777">読み込み中...</div>';
+  try {
+    const { data: scoreData, error } = await supabaseClient
+      .from('scores')
+      .select('score, mode, profiles(nickname, icon)')
+      .order('score', { ascending: false })
+      .limit(10);
+    
+    if(error || !scoreData || scoreData.length === 0){
+      listEl.innerHTML = '<div style="text-align:center;color:#777">まだスコアがありません</div>';
+      return;
+    }
+    listEl.innerHTML = scoreData.map((item, idx) => {
+      const prof = item.profiles || { nickname: '名無し', icon: '❓' };
+      return `<div class="ranking-item">
+        <span><b>${idx+1}位</b> ${prof.icon} ${prof.nickname}</span>
+        <span style="color:var(--title);font-weight:bold">${item.score}点 <span style="font-size:12px;color:#777">(${item.mode})</span></span>
+      </div>`;
+    }).join("");
+  } catch(e){
+    listEl.innerHTML = '<div style="text-align:center;color:#e2574c">読み込みエラー</div>';
+  }
+}
+
+/* ===== 共通の時間軸 ===== */
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
 function setBpm(v){ BPM = v; BEAT = 60 / v; }
 
-/* ===== 問題（トークン: q=4分 e=8分 x=16分 s=スタッカート Rq=4分休符 Re=8分休符 ~=次の音とタイ） ===== */
+/* ===== 問題（トークン） ===== */
 var levels = [
   {name:"4分音符まで", pats:[
     [["q","q","q","q"],["q","q","q","q"]],
@@ -258,7 +422,7 @@ function buildNotes(bars){
   return notes;
 }
 
-/* ===== 楽譜描画（位置は開始時刻から計算） ===== */
+/* ===== 楽譜描画 ===== */
 var X0 = 10, X1 = 790, TS_W = 56, PAD = 14;
 var PB = (X1 - X0 - TS_W - 30) / TOTAL;
 function xb(b){ return X0 + TS_W + b * PB; }
@@ -274,13 +438,12 @@ function drawScore(notes, res, extras, marks){
   el("rect",{x:X0,y:top,width:X1-X0,height:bot-top,fill:"none",stroke:"#333","stroke-width":3});
   el("line",{x1:xb(4),y1:top,x2:xb(4),y2:bot,stroke:"#333","stroke-width":3});
   el("line",{x1:X0+TS_W,y1:100,x2:X1,y2:100,stroke:"#ccc","stroke-width":1});
-  el("rect",{x:X0+TS_W,y:148,width:X1-X0-TS_W,height:10,rx:5,fill:"#eee"});   // 自分のタップ表示レーン
+  el("rect",{x:X0+TS_W,y:148,width:X1-X0-TS_W,height:10,rx:5,fill:"#eee"});   
   for(var b=1;b<TOTAL;b++){ if(b===4) continue; el("line",{x1:xb(b),y1:bot-4,x2:xb(b),y2:bot,stroke:"#ccc"}); }
   var f = {x:X0+TS_W/2,"text-anchor":"middle","font-size":34,"font-weight":"bold",fill:"#333"};
   f.y = 83; el("text",f).textContent = "4";
   f.y = 119; el("text",f).textContent = "4";
 
-  // 連桁グループ(同じ拍の連続した8分・16分)
   var groups = [], cur = null, inBeam = {};
   notes.forEach(function(n, i){
     if(!n.rest && (n.type==="e" || n.type==="x" || n.type==="d")){
@@ -336,7 +499,6 @@ function drawScore(notes, res, extras, marks){
       p = q + 1;
     }
   });
-  // 余分なタップの位置に赤い×
   (extras || []).forEach(function(t){
     var bx = Math.min(X1 - 10, Math.max(X0 + TS_W + 6, xb(t.s / BEAT) + PAD));
     var st = {stroke:"#e2574c","stroke-width":5,"stroke-linecap":"round"};
@@ -347,7 +509,6 @@ function drawScore(notes, res, extras, marks){
   (marks || []).forEach(function(t){ addMarker(t); });
 }
 
-/* 自分のタップの緑マーカー */
 function setMarker(m, t){
   var x = Math.min(X1 - 14, xb(t.s / BEAT) + PAD);          
   var w = Math.max(0, t.d / BEAT * PB);
@@ -432,7 +593,7 @@ var calLag = 0, cal = null, calTimer = 0;
 var COUNT_WORDS = ["いち","に","さん","はい！"];
 
 function show(id){
-  ["sTop","sSet","sPrac","sGame"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
+  ["sTop","sSet","sPrac","sGame","sQuest","sAccount"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
   $("back").style.display = id==="sTop" ? "none" : "block";
 }
 function goTop(){
@@ -617,33 +778,22 @@ function judge(){
   });
   notes.forEach(function(n, i){ if(n.tiedFrom) res[i] = res[i-1]; });
 
-  // ===== 休符の判定（修正箇所：音の伸びや長押しの食い込み、新規の叩きをすべて検出） ===== */
   var restViolationCount = 0;
   notes.forEach(function(n, i){
     if(!n.rest) return;
-    U += 1; // 休符も1単位としてカウント
+    U += 1;
     var rStart = n.start * BEAT;
     var rEnd = (n.start + n.duration) * BEAT;
     
     var violated = false;
     taps.forEach(function(t){
-      // タップの区間 [t.s, t.s + t.d] が休符の区間 [rStart, rEnd] と重なっているかチェック
-      // （前の音の長押しが食い込んでいる場合もここで検知されます）
-      if(t.s < rEnd - 0.02 && (t.s + t.d) > rStart + 0.02){
-        violated = true;
-      }
+      if(t.s < rEnd - 0.02 && (t.s + t.d) > rStart + 0.02){ violated = true; }
     });
 
-    if(violated){
-      res[i] = false;
-      restViolationCount++;
-    } else {
-      res[i] = true;
-      hitU += 1;
-    }
+    if(violated){ res[i] = false; restViolationCount++; }
+    else { res[i] = true; hitU += 1; }
   });
 
-  // 余分なタップの計算
   var extra = 0;
   taps.forEach(function(t, j){
     if(used[j]) return;
@@ -691,9 +841,14 @@ function judge(){
     });
     return !inRest;
   }), taps);
+
+  // ★ クエストモード時はランキングにスコアを送信
+  if(isQuestMode && currentAccount){
+    submitScoreToSupabase(score, "LV" + (questLevel + 1));
+  }
 }
 
-/* ===== TAP（pointerイベントのみ） ===== */
+/* ===== TAP処理 ===== */
 var tapBtn = $("tap");
 var STAR_COLORS = ["#ffd84a","#ffffff","#ff9ec5","#8fd3ff","#ffb04a"];
 function tapFx(e){
@@ -769,7 +924,7 @@ tapBtn.addEventListener("pointercancel", release);
 tapBtn.addEventListener("lostpointercapture", release);
 tapBtn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
 
-/* ===== ボタン類 ===== */
+/* ===== ボタン・画面遷移 ===== */
 function guard(){ var n = performance.now(); if(n < busyUntil) return false; busyUntil = n + 300; return true; }
 $("demoBtn").addEventListener("click", function(){
   if(!guard()) return; ensureAudio(); stopAll();
@@ -783,19 +938,139 @@ $("mineBtn").addEventListener("click", function(){
   taps.forEach(function(t){ piano(b + t.s, Math.min(Math.max(t.d, 0.05), 2)); });
 });
 $("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
-$("nextBtn").addEventListener("click", function(){ if(guard()){ newProblem(); startRun(); } });
+$("nextBtn").addEventListener("click", function(){
+  if(!guard()) return;
+  if(isQuestMode){
+    goTop();
+  } else {
+    newProblem(); startRun();
+  }
+});
 $("back").addEventListener("click", goTop);
 $("popBtn").addEventListener("click", function(){
   if(state !== "popup") return;
   $("popup").style.display = "none";
   newProblem(); startRun();
 });
-$("goPrac").addEventListener("click", function(){ ensureAudio(); show("sPrac"); });
-$("goSet").addEventListener("click", function(){ show("sSet"); });
-$("goBtn").addEventListener("click", function(){ ensureAudio(); show("sGame"); newProblem(); startCal(); });
 
+$("goTop").addEventListener("click", goTop);
+$("goQuest").addEventListener("click", function(){
+  isQuestMode = true;
+  show("sQuest");
+  fetchRanking();
+});
+$("goPrac").addEventListener("click", function(){
+  isQuestMode = false;
+  ensureAudio(); show("sPrac");
+});
+$("goSet").addEventListener("click", function(){ show("sSet"); });
+$("profileBtn").addEventListener("click", function(){
+  renderAccountList();
+  show("sAccount");
+});
+
+/* クエストレベル選択トグル */
+makeToggle("qBtn1", ["レベル1 (4分)","レベル2 (8分)","レベル3 (16分)"], 0, function(i){ questLevel = i; });
+// ※ qBtn2, qBtn3 の連動はシンプルに切替
+document.getElementById("qBtn1").addEventListener("click", function(){ questLevel=0; this.classList.add("on"); document.getElementById("qBtn2").classList.remove("on"); document.getElementById("qBtn3").classList.remove("on"); });
+document.getElementById("qBtn2").addEventListener("click", function(){ questLevel=1; this.classList.add("on"); document.getElementById("qBtn1").classList.remove("on"); document.getElementById("qBtn3").classList.remove("on"); });
+document.getElementById("qBtn3").addEventListener("click", function(){ questLevel=2; this.classList.add("on"); document.getElementById("qBtn1").classList.remove("on"); document.getElementById("qBtn2").classList.remove("on"); });
+
+$("startQuestBtn").addEventListener("click", function(){
+  ensureAudio();
+  lvl = questLevel;
+  show("sGame");
+  newProblem();
+  startCal();
+});
+
+$("goBtn").addEventListener("click", function(){
+  ensureAudio();
+  lvl = 3; // ランダムまたは選択
+  show("sGame"); newProblem(); startCal();
+});
+
+/* ===== アカウント・アイコン管理UI構築 ===== */
+let selectedNewIcon = "🦁";
+function renderIconGrid(){
+  const grid = $("iconGrid");
+  grid.innerHTML = ICONS.map(icon => `<div class="icon-item ${icon===selectedNewIcon?'selected':''}" data-icon="${icon}">${icon}</div>`).join("");
+  grid.querySelectorAll(".icon-item").forEach(el => {
+    el.addEventListener("click", function(){
+      selectedNewIcon = this.getAttribute("data-icon");
+      renderIconGrid();
+    });
+  });
+}
+
+function renderAccountList(){
+  const list = $("accountList");
+  list.innerHTML = accounts.map(acc => `
+    <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}">
+      <div style="display:flex;align-items:center;gap:10px;font-size:20px">
+        <span>${acc.icon}</span>
+        <span style="font-size:16px;font-weight:bold">${acc.nickname}</span>
+      </div>
+      <span style="font-size:12px;color:#777">あいことば: ${acc.secret_code}</span>
+    </div>
+  `).join("");
+
+  list.querySelectorAll(".account-card").forEach(el => {
+    el.addEventListener("click", function(){
+      const id = this.getAttribute("data-id");
+      currentAccount = accounts.find(a => a.id === id);
+      saveAccountsToLocal();
+      renderAccountList();
+    });
+  });
+}
+
+$("showNewAccBtn").addEventListener("click", function(){
+  const panel = $("newAccPanel");
+  panel.style.display = panel.style.display === "none" ? "flex" : "none";
+  renderIconGrid();
+});
+
+$("createAccBtn").addEventListener("click", function(){
+  const nick = $("newNickname").value.trim();
+  if(!nick){ alert("なまえを入力してね！"); return; }
+  const newAcc = createDefaultAccount(selectedNewIcon, nick);
+  currentAccount = newAcc;
+  saveAccountsToLocal();
+  $("newNickname").value = "";
+  $("newAccPanel").style.display = "none";
+  renderAccountList();
+});
+
+$("importAccBtn").addEventListener("click", async function(){
+  const code = $("secretCodeInput").value.trim();
+  if(!code) return;
+  if(!supabaseClient){ alert("Supabaseが未設定です"); return; }
+  
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('*')
+    .eq('secret_code', code)
+    .single();
+
+  if(data){
+    if(!accounts.some(a => a.id === data.id)){
+      accounts.push(data);
+    }
+    currentAccount = data;
+    saveAccountsToLocal();
+    renderAccountList();
+    $("secretCodeInput").value = "";
+    alert(data.nickname + " さんデータをひきつぎました！");
+  } else {
+    alert("あいことばが見つかりませんでした");
+  }
+});
+
+/* トグル・設定関連 */
 function makeToggle(boxId, labels, init, onPick){
   var box = $(boxId), btns = [];
+  if(!box) return;
   labels.forEach(function(lb, i){
     var b = document.createElement("button");
     b.className = "tg" + (i===init ? " on" : ""); b.textContent = lb;
@@ -808,6 +1083,7 @@ function makeToggle(boxId, labels, init, onPick){
 }
 makeToggle("lvBtns", ["4分音符まで","8分音符まで","16分音符まで","ランダム"], 3, function(i){ lvl = i; });
 makeToggle("demoTg", ["お手本あり","お手本なし"], 0, function(i){ demoOn = (i===0); });
+
 var saved = {};
 try{ saved = JSON.parse(localStorage.getItem("rhythmSettings") || "{}"); }catch(e){}
 if(saved.m != null) volMetro = saved.m;
@@ -823,12 +1099,14 @@ function setTheme(i){
   saveSet();
 }
 makeToggle("themeTg", ["パステル","トロピカル","オーシャン"], themeIdx, setTheme);
+
 $("volM").value = volMetro; $("volMv").textContent = volMetro;
 $("volT").value = volTap;   $("volTv").textContent = volTap;
 $("volM").addEventListener("input", function(){ volMetro = parseInt(this.value,10); $("volMv").textContent = volMetro; saveSet(); });
 $("volT").addEventListener("input", function(){ volTap = parseInt(this.value,10); $("volTv").textContent = volTap; saveSet(); });
 $("ofsS").value = timingOfs; $("ofsV").textContent = timingOfs;
 $("ofsS").addEventListener("input", function(){ timingOfs = parseInt(this.value,10); $("ofsV").textContent = timingOfs; saveSet(); });
+
 function stepper(sliderId, minusId, plusId, step){
   var sl = $(sliderId);
   function bump(dir){
@@ -852,6 +1130,7 @@ function stepper(sliderId, minusId, plusId, step){
 stepper("volM","volMm","volMp",5);
 stepper("volT","volTm","volTp",5);
 stepper("ofsS","ofsM","ofsP",5);
+
 $("testM").addEventListener("click", function(){
   ensureAudio(); stopAll();
   var b = ctx.currentTime + 0.1;
@@ -867,6 +1146,9 @@ $("testT").addEventListener("click", function(){
   $("bpmSel").appendChild(o);
 });
 $("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10)); saveSet(); });
+
+// 初期ロード実行
+loadAccounts();
 })();
 </script>
 </body>
