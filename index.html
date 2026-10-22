@@ -26,7 +26,7 @@ body{background:linear-gradient(180deg,var(--bg1),var(--bg2))}
 .screen.on{display:flex}
 .pad{padding-top:30px}
 h1{margin:0;font-size:clamp(20px,7vh,36px);text-align:center;color:var(--title);text-shadow:0 2px 0 rgba(255,255,255,.85),0 5px 10px rgba(0,0,0,.14)}
-h2{margin:0;font-size:clamp(18px,5vh,26px);color:#444}
+h2{margin:0;font-size:clamp(18px,5vh,26px);color:#444;text-align:center}
 
 /* ===== ぷっくりボタン ===== */
 button{--k1:var(--a1);--k2:var(--a2);--k3:var(--a3);font-family:inherit;font-size:clamp(18px,5vh,28px);padding:10px 26px;border:0;border-radius:18px;color:#fff;font-weight:800;touch-action:manipulation;
@@ -58,11 +58,15 @@ select{font-size:clamp(15px,4vh,22px);padding:4px 8px;border-radius:10px;border:
 @media (min-aspect-ratio:1/1){.setrow{flex-direction:row;align-items:center;gap:8px}.setrow .nm{min-width:8.5em}.setrow .ctl{flex:1 1 auto}}
 button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 
-/* ===== アイコン・アカウント・すごろく用スタイル ===== */
-.icon-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:8px;max-height:180px;overflow-y:auto;padding:6px;width:100%;background:#fff;border-radius:12px;border:2px solid #ddd}
-.icon-item{font-size:28px;padding:6px;text-align:center;background:#f9f9f9;border-radius:10px;cursor:pointer;border:2px solid transparent}
-.icon-item.selected{border-color:var(--a2);background:var(--bg1)}
-.account-card{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:10px 16px;border-radius:14px;width:100%;max-width:400px;box-shadow:0 3px 10px rgba(0,0,0,.08);border:2px solid transparent}
+/* ===== キャラクター・アイコン選択スタイル ===== */
+.icon-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:10px;max-height:260px;overflow-y:auto;padding:10px;width:100%;max-width:440px;background:#fff;border-radius:16px;border:3px solid var(--a2);box-shadow:inset 0 2px 6px rgba(0,0,0,0.06)}
+.icon-item{width:100%;aspect-ratio:1;padding:4px;text-align:center;background:#fffaf0;border-radius:12px;cursor:pointer;border:3px solid transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}
+.icon-item:hover{transform:scale(1.05)}
+.icon-item.selected{border-color:var(--title);background:var(--bg1);box-shadow:0 0 10px rgba(226,89,47,0.4)}
+.icon-item img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+
+.account-card{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:12px 18px;border-radius:16px;width:100%;max-width:420px;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:3px solid transparent;cursor:pointer;transition:transform 0.1s}
+.account-card:hover{transform:translateY(-2px)}
 .account-card.active{border-color:var(--a2);background:#fffdf6}
 
 /* すごろくボード */
@@ -70,6 +74,7 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
 .map-cell{background:#fff;border-radius:12px;padding:12px 6px;text-align:center;font-size:16px;font-weight:bold;box-shadow:0 3px 6px rgba(0,0,0,.08);border:2px solid #ddd;position:relative}
 .map-cell.current{border-color:var(--title);background:var(--bg1);transform:scale(1.05)}
 .map-cell.boss{background:#ffcccc;border-color:#ff4444}
+.map-cell img{width:32px;height:32px;object-fit:contain;vertical-align:middle}
 
 /* クイズ選択肢 */
 .quiz-option{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:12px 16px;border-radius:14px;width:100%;max-width:460px;font-size:18px;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.1);cursor:pointer;border:2px solid #ddd}
@@ -150,28 +155,29 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
     <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:460px;align-items:center" id="quizOptionsList"></div>
   </div>
 
-  <!-- アカウント選択・作成・引継ぎ画面 -->
-  <div class="screen pad" id="sAccount" style="gap:8px">
-    <h2>プレーヤーの選択・作成</h2>
-    <div id="accountList" style="display:flex;flex-direction:column;gap:6px;width:100%;max-width:400px;align-items:center"></div>
-    <button id="showNewAccBtn" style="font-size:16px;padding:8px 20px;background:#888;">＋ 新しいプレーヤーを追加</button>
-    
-    <div class="panel" id="newAccPanel" style="display:none;width:100%;max-width:400px;gap:6px">
-      <div style="font-weight:bold;font-size:15px">アイコンをえらんでね</div>
-      <div class="icon-grid" id="iconGrid"></div>
-      <div style="width:100%;display:flex;gap:6px;align-items:center">
-        <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;padding:8px;font-size:16px;border-radius:10px;border:2px solid #ccc">
-        <button id="createAccBtn" style="font-size:16px;padding:8px 16px;">登録</button>
-      </div>
-    </div>
+  <!-- 既存キャラクター選択画面（登録済がある場合） -->
+  <div class="screen pad" id="sCharSelect" style="gap:10px">
+    <h2>プレイヤーをえらんでね</h2>
+    <div id="accountList" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:420px;align-items:center"></div>
+    <button id="toNewCharBtn" style="font-size:16px;padding:12px 24px;background:linear-gradient(180deg,var(--p1),var(--p2))">＋ 新しいキャラクターを作成</button>
+  </div>
 
-    <div class="panel" style="width:100%;max-width:400px;gap:6px">
-      <div style="font-weight:bold;font-size:14px">ほかのスマホからデータをひきつぐ</div>
-      <div style="display:flex;gap:6px;width:100%">
-        <input type="text" id="secretCodeInput" placeholder="あいことばを入力" style="flex:1;padding:6px;font-size:14px;border-radius:8px;border:2px solid #ccc">
-        <button id="importAccBtn" style="font-size:14px;padding:6px 12px;">ひきつぐ</button>
-      </div>
+  <!-- 新規キャラクター：アイコン選択画面 -->
+  <div class="screen pad" id="sNewCharIcon" style="gap:8px">
+    <h2>キャラクターのアイコンをきめて、<br>ニックネームをつけてね♪</h2>
+    <div style="font-size:14px;color:#665;margin-bottom:2px">すきなアイコンをえらんでね</div>
+    <div class="icon-grid" id="iconGrid"></div>
+    <button id="nextToNameBtn" style="padding:10px 36px;font-size:18px;">ぎゃくしんへすすむ →</button>
+  </div>
+
+  <!-- 新規キャラクター：ニックネーム入力画面 -->
+  <div class="screen pad" id="sNewCharName" style="gap:14px">
+    <h2>なまえをいれてね</h2>
+    <div style="display:flex;align-items:center;gap:12px;background:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,0.08)">
+      <img id="selectedIconPreview" src="" style="width:50px;height:50px;object-fit:contain">
+      <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;padding:10px;font-size:18px;border-radius:10px;border:2px solid #ccc">
     </div>
+    <button id="createAccBtn" style="padding:12px 40px;font-size:20px;">クエスト出発！ 🚀</button>
   </div>
 
   <!-- 設定画面 -->
@@ -230,12 +236,17 @@ const SUPABASE_URL = 'https://cluingpqudgjhyjhegiy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdWluZ3BxdWRnamh5amhlZ2l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNzg0NTMsImV4cCI6MjEwNjk1NDQ1M30.6TyaxqKQwP-0c3sUbtlbUVX3XgQLg1nABvPoB26a9co';
 const supabaseClient = (SUPABASE_URL.includes('xxxx') || !window.supabase) ? null : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ===== 50種類のアイコンリスト ===== */
-const ICONS = ["🦁", "🐯", "🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐨", "🐮", "🐷", "🐸", "🐵", "🐔", "🐧", "🐦", "🐤", "🦆", "🦅", "🦉", "🦄", "🐉", "🦕", "🦖", "🐳", "🐬", "🐟", "🐙", "🦀", "🦞", "🍎", "🍊", "🍓", "🍉", "🍇", "🍒", "🍑", "🍍", "⭐", "🌙", "☀️", "⚡", "🔥", "💎", "🎸", "🎹", "🎺", "🎻", "🥁", "🎤"];
+/* ===== 40種類のアイコンリスト生成 (icon/char01.png 〜 char40.png) ===== */
+const ICONS = [];
+for(let i = 1; i <= 40; i++){
+  let numStr = String(i).padStart(2, '0');
+  ICONS.push(`icon/char${numStr}.png`);
+}
 
 /* ===== ユーザー・アカウント管理 ===== */
-let accounts = []; // ローカル保存されたアカウント一覧
-let currentAccount = null; // 現在選ばれているアカウント
+let accounts = []; 
+let currentAccount = null; 
+let selectedNewIcon = ICONS[0];
 
 function loadAccounts(){
   try {
@@ -244,27 +255,12 @@ function loadAccounts(){
     if(accounts.length > 0){
       currentAccount = accounts.find(a => a.id === curId) || accounts[0];
     } else {
-      currentAccount = createDefaultAccount();
+      currentAccount = null;
     }
   } catch(e){
-    currentAccount = createDefaultAccount();
+    currentAccount = null;
   }
   updateProfileBtnUI();
-}
-
-function createDefaultAccount(icon = "🎹", nickname = "名無し"){
-  const newAcc = {
-    id: 'user_' + Math.random().toString(36).substring(2, 9),
-    secret_code: 'rc-' + Math.floor(1000 + Math.random() * 9000),
-    icon: icon,
-    nickname: nickname,
-    tokens: 0,
-    position: 1 // すごろくの現在地 (1〜10)
-  };
-  accounts.push(newAcc);
-  saveAccountsToLocal();
-  syncAccountToSupabase(newAcc);
-  return newAcc;
 }
 
 function saveAccountsToLocal(){
@@ -276,7 +272,9 @@ function saveAccountsToLocal(){
 function updateProfileBtnUI(){
   const btn = document.getElementById("profileBtn");
   if(currentAccount){
-    btn.textContent = currentAccount.icon + " " + currentAccount.nickname;
+    btn.innerHTML = `<img src="${currentAccount.icon}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${currentAccount.nickname}`;
+  } else {
+    btn.textContent = "👤 プレーヤー";
   }
 }
 
@@ -320,7 +318,6 @@ function stopAll(){
   newBus();
 }
 
-/* テスト用ブザー音 / メロディを鳴らす関数 */
 function playTestBuzzer(type){
   ensureAudio();
   var o = ctx.createOscillator(), g = ctx.createGain();
@@ -371,8 +368,8 @@ function metro(base){ for(var i=0;i<TOTAL;i++) click(base + i*BEAT, i%4===0); }
 /* ===== クエスト（すごろく）画面のロジック ===== */
 function updateQuestUI(){
   if(!currentAccount) return;
-  document.getElementById("tokenCount").textContent = currentAccount.tokens;
-  document.getElementById("currentPos").textContent = currentAccount.position;
+  document.getElementById("tokenCount").textContent = currentAccount.tokens || 0;
+  document.getElementById("currentPos").textContent = currentAccount.position || 1;
   
   const container = document.getElementById("boardContainer");
   container.innerHTML = "";
@@ -382,7 +379,7 @@ function updateQuestUI(){
     if(i === 10){
       cell.innerHTML = "👑<br>ボス";
     } else if(i === currentAccount.position){
-      cell.innerHTML = currentAccount.icon + "<br>" + i;
+      cell.innerHTML = `<img src="${currentAccount.icon}"><br>${i}`;
     } else {
       cell.innerHTML = "マス<br>" + i;
     }
@@ -395,7 +392,7 @@ document.getElementById("rollDiceBtn").addEventListener("click", function(){
   if(!currentAccount) return;
   
   let adv = Math.floor(Math.random() * 3) + 1;
-  currentAccount.position += adv;
+  currentAccount.position = (currentAccount.position || 1) + adv;
   
   if(currentAccount.position >= 10){
     currentAccount.position = 10;
@@ -406,7 +403,7 @@ document.getElementById("rollDiceBtn").addEventListener("click", function(){
     }, 300);
   } else {
     let earned = Math.floor(Math.random() * 2) + 1;
-    currentAccount.tokens += earned;
+    currentAccount.tokens = (currentAccount.tokens || 0) + earned;
     saveAccountsToLocal();
     updateQuestUI();
     alert("サイコロの目は " + adv + "！\nマスを進んだ！ 音のカケラを " + earned + "個ゲット！🪙");
@@ -445,7 +442,7 @@ function startBossQuiz(){
       if(isCorr){
         playTestBuzzer('correct');
         alert("正解！ ベートーベンの曲だ！\n音のカケラ🪙 +10個ゲット！");
-        currentAccount.tokens += 10;
+        currentAccount.tokens = (currentAccount.tokens || 0) + 10;
         currentAccount.position = 1;
         saveAccountsToLocal();
         show("sQuest");
@@ -457,7 +454,6 @@ function startBossQuiz(){
     });
   });
 }
-
 
 /* ===== 共通の時間軸 ===== */
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
@@ -672,7 +668,7 @@ var calLag = 0, cal = null, calTimer = 0;
 var COUNT_WORDS = ["いち","に","さん","はい！"];
 
 function show(id){
-  ["sTop","sSet","sPrac","sGame","sQuest","sQuiz","sAccount"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
+  ["sTop","sSet","sPrac","sGame","sQuest","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
   $("back").style.display = id==="sTop" ? "none" : "block";
 }
 function goTop(){
@@ -1023,10 +1019,20 @@ $("popBtn").addEventListener("click", function(){
   newProblem(); startRun();
 });
 
+/* クエストモードクリック時の挙動 */
 $("goQuest").addEventListener("click", function(){
   ensureAudio();
-  show("sQuest");
-  updateQuestUI();
+  loadAccounts();
+  if(accounts.length === 0){
+    // キャラがまだいない場合は作成画面へ
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    // 既にキャラがいる場合は選択画面へ
+    renderAccountList();
+    show("sCharSelect");
+  }
 });
 
 $("goPrac").addEventListener("click", function(){
@@ -1034,8 +1040,15 @@ $("goPrac").addEventListener("click", function(){
 });
 $("goSet").addEventListener("click", function(){ show("sSet"); });
 $("profileBtn").addEventListener("click", function(){
-  renderAccountList();
-  show("sAccount");
+  loadAccounts();
+  if(accounts.length === 0){
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    renderAccountList();
+    show("sCharSelect");
+  }
 });
 
 /* 練習モードのスタートボタン設定 */
@@ -1046,11 +1059,15 @@ $("goBtn").addEventListener("click", function(){
   startCal();
 });
 
-/* ===== アカウント・アイコン管理・削除機能UI ===== */
-let selectedNewIcon = "🦁";
+/* ===== キャラクター・アイコン選択画面の構築 ===== */
 function renderIconGrid(){
   const grid = $("iconGrid");
-  grid.innerHTML = ICONS.map(icon => `<div class="icon-item ${icon===selectedNewIcon?'selected':''}" data-icon="${icon}">${icon}</div>`).join("");
+  grid.innerHTML = ICONS.map(iconPath => `
+    <div class="icon-item ${iconPath === selectedNewIcon ? 'selected' : ''}" data-icon="${iconPath}">
+      <img src="${iconPath}">
+    </div>
+  `).join("");
+
   grid.querySelectorAll(".icon-item").forEach(el => {
     el.addEventListener("click", function(){
       selectedNewIcon = this.getAttribute("data-icon");
@@ -1062,14 +1079,14 @@ function renderIconGrid(){
 function renderAccountList(){
   const list = $("accountList");
   list.innerHTML = accounts.map(acc => `
-    <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}" style="cursor:pointer">
-      <div style="display:flex;align-items:center;gap:10px;font-size:20px">
-        <span>${acc.icon}</span>
-        <span style="font-size:16px;font-weight:bold">${acc.nickname}</span>
+    <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}">
+      <div style="display:flex;align-items:center;gap:12px;font-size:18px">
+        <img src="${acc.icon}" style="width:40px;height:40px;object-fit:contain">
+        <span style="font-weight:bold">${acc.nickname}</span>
       </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:12px;color:#777">🪙${acc.tokens || 0}</span>
-        <button class="del-acc-btn" data-id="${acc.id}" style="font-size:12px;padding:4px 8px;background:#e2574c;box-shadow:0 2px 0 #b33;border-radius:8px">削除</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:#777">🪙${acc.tokens || 0}</span>
+        <button class="del-acc-btn" data-id="${acc.id}" style="font-size:12px;padding:6px 10px;background:#e2574c;box-shadow:0 2px 0 #b33;border-radius:8px">削除</button>
       </div>
     </div>
   `).join("");
@@ -1080,7 +1097,8 @@ function renderAccountList(){
       const id = this.getAttribute("data-id");
       currentAccount = accounts.find(a => a.id === id);
       saveAccountsToLocal();
-      renderAccountList();
+      show("sQuest");
+      updateQuestUI();
     });
   });
 
@@ -1088,14 +1106,10 @@ function renderAccountList(){
     btn.addEventListener("click", function(e){
       e.stopPropagation();
       const id = this.getAttribute("data-id");
-      if(accounts.length <= 1){
-        alert("最後のアカウントは削除できません。");
-        return;
-      }
-      if(confirm("このプレイヤーデータを削除しますか？")){
+      if(confirm("このキャラクターを削除しますか？")){
         accounts = accounts.filter(a => a.id !== id);
         if(currentAccount && currentAccount.id === id){
-          currentAccount = accounts[0];
+          currentAccount = accounts.length > 0 ? accounts[0] : null;
         }
         saveAccountsToLocal();
         renderAccountList();
@@ -1104,48 +1118,44 @@ function renderAccountList(){
   });
 }
 
-$("showNewAccBtn").addEventListener("click", function(){
-  const panel = $("newAccPanel");
-  panel.style.display = panel.style.display === "none" ? "flex" : "none";
+/* 既存キャラ選択画面から新規作成へ */
+$("toNewCharBtn").addEventListener("click", function(){
+  selectedNewIcon = ICONS[0];
   renderIconGrid();
+  show("sNewCharIcon");
 });
 
+/* アイコン選択完了 → ニックネーム入力画面へ */
+$("nextToNameBtn").addEventListener("click", function(){
+  $("selectedIconPreview").src = selectedNewIcon;
+  $("newNickname").value = "";
+  show("sNewCharName");
+});
+
+/* ニックネーム登録＆クエストへ出発 */
 $("createAccBtn").addEventListener("click", function(){
   const nick = $("newNickname").value.trim();
   if(!nick){ alert("なまえを入力してね！"); return; }
-  const newAcc = createDefaultAccount(selectedNewIcon, nick);
+  
+  const newAcc = {
+    id: 'user_' + Math.random().toString(36).substring(2, 9),
+    secret_code: 'rc-' + Math.floor(1000 + Math.random() * 9000),
+    icon: selectedNewIcon,
+    nickname: nick,
+    tokens: 0,
+    position: 1
+  };
+  accounts.push(newAcc);
   currentAccount = newAcc;
   saveAccountsToLocal();
-  $("newNickname").value = "";
-  $("newAccPanel").style.display = "none";
-  renderAccountList();
-});
-
-$("importAccBtn").addEventListener("click", async function(){
-  const code = $("secretCodeInput").value.trim();
-  if(!code) return;
-  if(!supabaseClient){ alert("Supabaseが未設定です"); return; }
-  
-  const { data, error } = await supabaseClient
-    .from('profiles')
-    .select('*')
-    .eq('secret_code', code)
-    .single();
-
-  if(data){
-    if(!accounts.some(a => a.id === data.id)){
-      data.tokens = data.tokens || 0;
-      data.position = data.position || 1;
-      accounts.push(data);
-    }
-    currentAccount = data;
-    saveAccountsToLocal();
-    renderAccountList();
-    $("secretCodeInput").value = "";
-    alert(data.nickname + " さんデータをひきつぎました！");
-  } else {
-    alert("あいことばが見つかりませんでした");
+  if(supabaseClient){
+    supabaseClient.from('profiles').upsert({
+      id: newAcc.id, secret_code: newAcc.secret_code, nickname: newAcc.nickname, icon: newAcc.icon
+    }).then(()=>{});
   }
+  
+  show("sQuest");
+  updateQuestUI();
 });
 
 /* トグル・設定関連 */
