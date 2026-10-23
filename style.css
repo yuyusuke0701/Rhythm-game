@@ -1,0 +1,111 @@
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:#fde7a0}
+/* ===== テーマ(設定で切替): 1=パステル 2=トロピカル 3=オーシャン ===== */
+body[data-theme="1"]{--bg1:#fffaf4;--bg2:#fdeee6;--title:#e8897c;
+  --q1:#c9cbe4;--q2:#adb0d2;--q3:#8f93ba;--p1:#aee0d0;--p2:#8fcfba;--p3:#6fb39d;--s1:#d6b0e4;--s2:#bd92d2;--s3:#9d72b6;
+  --a1:#aee0d0;--a2:#8fcfba;--a3:#6fb39d;--t1:#ffbc98;--t2:#fb9468;--t3:#df744a;--tglow:rgba(255,150,100,.55)}
+body[data-theme="2"]{--bg1:#fff8d2;--bg2:#fde7a0;--title:#e2592f;
+  --q1:#bde676;--q2:#92cb3c;--q3:#6ea524;--p1:#ffc450;--p2:#f89c16;--p3:#d97b00;--s1:#b9568f;--s2:#97396f;--s3:#762858;
+  --a1:#a4d94c;--a2:#7cbb26;--a3:#5d9814;--t1:#ffb552;--t2:#f98a14;--t3:#d86d00;--tglow:rgba(255,165,40,.6)}
+body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
+  --q1:#a6bacd;--q2:#869db5;--q3:#6a8299;--p1:#5ec3b8;--p2:#35a499;--p3:#1f8379;--s1:#5559b8;--s2:#3a3f98;--s3:#2a2e78;
+  --a1:#56c5ae;--a2:#33a68f;--a3:#218870;--t1:#86abff;--t2:#5a82f0;--t3:#3d63d0;--tglow:rgba(90,130,255,.6)}
+html,body{margin:0;height:100%;font-family:"Hiragino Maru Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#333;overflow:hidden}
+body{background:linear-gradient(180deg,var(--bg1),var(--bg2))}
+#app{height:100dvh;display:flex;flex-direction:column;align-items:center;padding:8px 12px}
+.screen{overflow-y:auto;display:none;width:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0}
+.screen.on{display:flex}
+.pad{padding-top:30px}
+h1{margin:0;font-size:clamp(20px,7vh,36px);text-align:center;color:var(--title);text-shadow:0 2px 0 rgba(255,255,255,.85),0 5px 10px rgba(0,0,0,.14)}
+h2{margin:0;font-size:clamp(18px,5vh,26px);color:#444;text-align:center}
+
+/* ===== ぷっくりボタン ===== */
+button{--k1:var(--a1);--k2:var(--a2);--k3:var(--a3);font-family:inherit;font-size:clamp(18px,5vh,28px);padding:10px 26px;border:0;border-radius:18px;color:#fff;font-weight:800;touch-action:manipulation;
+  background:linear-gradient(180deg,var(--k1),var(--k2));
+  box-shadow:0 5px 0 var(--k3),0 9px 14px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.5);
+  text-shadow:0 1px 2px rgba(0,0,0,.22);transition:transform .08s,box-shadow .08s}
+button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--k3),0 3px 6px rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.4)}
+button:disabled{opacity:.88;filter:saturate(.8)}
+.big{width:min(80%,420px);font-size:clamp(20px,6vh,32px);border-radius:22px;padding:14px 26px}
+#goQuest{--k1:var(--p1);--k2:var(--p2);--k3:var(--p3)}
+#goPrac{--k1:var(--t1);--k2:var(--t2);--k3:var(--t3)}
+#goSet,#demoBtn,#mineBtn{--k1:var(--s1);--k2:var(--s2);--k3:var(--s3)}
+#back{--k1:var(--s1);--k2:var(--s2);--k3:var(--s3);position:fixed;left:8px;top:6px;z-index:5;font-size:15px;padding:5px 12px;border-radius:12px;box-shadow:0 3px 0 var(--k3),0 5px 8px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4)}
+#profileBtn{position:fixed;right:8px;top:6px;z-index:5;font-size:14px;padding:5px 12px;border-radius:12px;background:linear-gradient(180deg,var(--p1),var(--p2));box-shadow:0 3px 0 var(--p3),0 5px 8px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4)}
+#againBtn{--k1:#cfcfcf;--k2:#b3b3b3;--k3:#939393}
+.row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
+.tg{--k1:#fff;--k2:#f3f3f3;--k3:#d9d9d9;color:#555;text-shadow:none;padding:8px 16px;font-size:clamp(15px,4.2vh,22px);border-radius:14px;box-shadow:0 4px 0 var(--k3),0 7px 10px rgba(0,0,0,.12),inset 0 2px 0 rgba(255,255,255,.9)}
+.tg.on{--k1:var(--a1);--k2:var(--a2);--k3:var(--a3);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.22);box-shadow:0 4px 0 var(--k3),0 7px 10px rgba(0,0,0,.15),inset 0 2px 0 rgba(255,255,255,.5)}
+#goBtn{padding:12px 56px;font-size:clamp(22px,7vh,34px);border-radius:22px}
+.opt{font-size:clamp(14px,3.8vh,20px);display:flex;align-items:center;gap:8px;color:#555}
+.opt input[type=checkbox]{width:26px;height:26px;accent-color:var(--a2)}
+select{font-size:clamp(15px,4vh,22px);padding:4px 8px;border-radius:10px;border:2px solid var(--a2);background:#fff}
+.panel{width:100%;max-width:600px;background:rgba(255,255,255,.78);border-radius:22px;padding:12px 14px;box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;gap:6px}
+.setrow{width:100%;max-width:560px;padding:0 6px;display:flex;flex-direction:column;gap:2px;font-size:clamp(14px,3.8vh,20px);color:#555}
+.setrow .ctl{display:flex;align-items:center;gap:8px}
+.setrow .ctl input[type=range]{flex:1 1 auto;min-width:0;width:auto;accent-color:var(--a2)}
+.setrow .ctl .vv{min-width:3.6em;text-align:right;flex:0 0 auto}
+.setrow button.st{flex:0 0 auto}
+@media (min-aspect-ratio:1/1){.setrow{flex-direction:row;align-items:center;gap:8px}.setrow .nm{min-width:8.5em}.setrow .ctl{flex:1 1 auto}}
+button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+
+/* ===== キャラクター・アイコン選択スタイル ===== */
+.icon-grid{display:grid;grid-template-columns:repeat(5, 1fr);gap:10px;max-height:260px;overflow-y:auto;padding:10px;width:100%;max-width:440px;background:#fff;border-radius:16px;border:3px solid var(--a2);box-shadow:inset 0 2px 6px rgba(0,0,0,0.06)}
+.icon-item{width:100%;aspect-ratio:1;padding:4px;text-align:center;background:#fffaf0;border-radius:12px;cursor:pointer;border:3px solid transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}
+.icon-item:hover{transform:scale(1.05)}
+.icon-item.selected{border-color:var(--title);background:var(--bg1);box-shadow:0 0 10px rgba(226,89,47,0.4)}
+.icon-item img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+
+.account-card{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:12px 18px;border-radius:16px;width:100%;max-width:420px;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:3px solid transparent;cursor:pointer;transition:transform 0.1s}
+.account-card:hover{transform:translateY(-2px)}
+.account-card.active{border-color:var(--a2);background:#fffdf6}
+
+/* すごろくボード */
+.board-container{display:grid;grid-template-columns:repeat(5, 1fr);gap:8px;width:100%;max-width:480px;margin:10px 0}
+.map-cell{background:#fff;border-radius:12px;padding:12px 6px;text-align:center;font-size:16px;font-weight:bold;box-shadow:0 3px 6px rgba(0,0,0,.08);border:2px solid #ddd;position:relative}
+.map-cell.current{border-color:var(--title);background:var(--bg1);transform:scale(1.05)}
+.map-cell.boss{background:#ffcccc;border-color:#ff4444}
+.map-cell img{width:32px;height:32px;object-fit:contain;vertical-align:middle}
+
+/* クイズ選択肢 */
+.quiz-option{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:12px 16px;border-radius:14px;width:100%;max-width:460px;font-size:18px;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.1);cursor:pointer;border:2px solid #ddd}
+.quiz-option:hover{border-color:var(--a2)}
+
+/* 楽譜・結果 */
+#score{width:100%;max-width:900px;background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+#score svg{width:100%;height:auto;max-height:36vh;display:block}
+#msg{white-space:pre-line;font-size:clamp(16px,4.6vh,26px);font-weight:bold;min-height:1.3em;text-align:center;color:#444}
+#count{font-size:clamp(46px,17vh,110px);font-weight:bold;color:var(--title);line-height:1;min-height:1em;text-shadow:0 3px 0 rgba(255,255,255,.7)}
+#popup{position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:20;align-items:center;justify-content:center}
+#popup .card{background:#fff;border-radius:24px;padding:20px 36px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+#popup .pt{font-size:clamp(22px,7vh,36px);font-weight:800;color:var(--title);margin-bottom:6px}
+#popup .ps{font-size:clamp(13px,3.6vh,18px);color:#555;margin-bottom:12px}
+#result{width:100%;max-width:900px;text-align:center}
+#bigScore{line-height:1.05;font-weight:bold}
+#bigScore .num{font-size:clamp(40px,15vh,96px)}
+#bigScore .lbl{font-size:clamp(16px,5vh,30px)}
+#detail{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 18px;font-size:clamp(13px,3.7vh,19px);color:#444;margin-top:2px}
+
+/* TAPボタンとエフェクト */
+#tapArea{position:relative;width:100%;text-align:center}
+#tap{--k1:var(--t1);--k2:var(--t2);--k3:var(--t3);width:min(96vw,760px);height:clamp(64px,22vh,140px);font-size:clamp(28px,9vh,52px);border-radius:999px;letter-spacing:.12em;touch-action:none;user-select:none;-webkit-user-select:none;
+  box-shadow:0 8px 0 var(--k3),0 14px 26px var(--tglow),inset 0 4px 0 rgba(255,255,255,.5)}
+#tap.down{transform:translateY(6px);box-shadow:0 2px 0 var(--k3),0 0 36px 12px var(--tglow),inset 0 4px 0 rgba(255,255,255,.5)}
+#tap.off{--k1:#e6e6e6;--k2:#d0d0d0;--k3:#b5b5b5;color:#9a9a9a;text-shadow:none;box-shadow:0 6px 0 #b5b5b5,0 8px 12px rgba(0,0,0,.1)}
+#tap.pulse{animation:tapring .5s ease-out}
+@keyframes tapring{
+  0%{box-shadow:0 2px 0 var(--k3),0 0 0 0 rgba(255,255,255,.95),0 0 40px 14px var(--tglow)}
+  100%{box-shadow:0 2px 0 var(--k3),0 0 0 32px rgba(255,255,255,0),0 0 56px 26px rgba(255,255,255,0)}}
+#fx{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:3}
+#fx .star{position:absolute;width:var(--sz);height:var(--sz);background:var(--sc);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  transform:translate(-50%,-50%);animation:burst .6s ease-out forwards}
+#fx .spark{position:absolute;width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px 3px var(--sc);
+  transform:translate(-50%,-50%);animation:burst .5s ease-out forwards}
+#fx .flash{position:absolute;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.95),rgba(255,255,255,0) 70%);
+  transform:translate(-50%,-50%);animation:flash .35s ease-out forwards}
+@keyframes burst{
+  0%{transform:translate(-50%,-50%) scale(.2) rotate(0deg);opacity:1}
+  60%{opacity:1}
+  100%{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1) rotate(var(--rot));opacity:0}}
+@keyframes flash{0%{transform:translate(-50%,-50%) scale(.3);opacity:1}100%{transform:translate(-50%,-50%) scale(1.3);opacity:0}}
