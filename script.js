@@ -336,7 +336,7 @@ function xOf(start){ return xb(start) + PAD; }
 var svg = document.getElementById("svg");
 var NS = "http://www.w3.org/2000/svg";
 function el(n, a){ var e = document.createElementNS(NS, n); for(var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
-function beam(xa, xz, y, th){ el("polygon",{points:xa+","+y+" "+xz+","+y+" "+xz+","+(y+th)+" "+xa+","+(y+th)},fill:"#222"); }
+function beam(xa, xz, y, th){ el("polygon",{points:xa+","+y+" "+xz+","+y+" "+xz+","+(y+th)+" "+xa+","+(y+th),fill:"#222"}); }
 
 function drawScore(notes, res, extras, marks){
   while(svg.firstChild) svg.removeChild(svg.firstChild);
