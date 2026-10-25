@@ -336,7 +336,7 @@ function xOf(start){ return xb(start) + PAD; }
 var svg = document.getElementById("svg");
 var NS = "http://www.w3.org/2000/svg";
 function el(n, a){ var e = document.createElementNS(NS, n); for(var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
-function beam(xa, xz, y, th){ el("polygon",{points:xa+","+y+" "+xz+","+y+" "+xz+","+(y+th)+" "+xa+","+(y+th),fill:"#222"}); }
+function beam(xa, xz, y, th){ el("polygon",{points:xa+","+y+" "+xz+","+y+" "+xz+","+(y+th)+" "+xa+","+(y+th)},fill:"#222"); }
 
 function drawScore(notes, res, extras, marks){
   while(svg.firstChild) svg.removeChild(svg.firstChild);
@@ -468,7 +468,6 @@ function scheduleDemo(base){
     piano(base + n.start*BEAT, n.sound*BEAT);
   });
 }
-
 function startRun(){
   ensureAudio();
   stopAll();
@@ -492,4 +491,489 @@ function startRun(){
   tick();
 }
 function tick(){
-  if(state !== "run") re
+  if(state !== "run") return;
+  var now = ctx.currentTime;
+  var vnow = now - latSec();      
+  canTap = now >= countStart;
+  $("tap").classList.toggle("off", !canTap);
+  for(var id in active){
+    var ac = active[id];
+    if(ac.tap && ac.rect){ ac.tap.d = Math.max(0.05, (now - recStart - latSec()) - ac.tap.s); setMarker(ac.rect, ac.tap); }
+  }
+  if(vnow < t0){ $("msg").textContent = "じゅんびしてね"; $("count").textContent = ""; }
+  else if(vnow < countStart){ $("msg").textContent = useDemo ? "お手本を再生中…（よく聴いてね）" : "じゅんびしてね"; $("count").textContent = ""; }
+  else if(vnow < recStart){
+    var c = Math.min(4, Math.floor((vnow - countStart)/BEAT) + 1);
+    $("msg").textContent = "つぎは あなたの番"; $("count").textContent = COUNT_WORDS[c-1];
+  } else if(vnow < recEnd){ $("msg").textContent = "たたこう！"; $("count").textContent = ""; }
+  else { finish(); return; }
+  rafId = requestAnimationFrame(tick);
+}
+function finish(){
+  state = "done"; canTap = false;
+  releaseAll();
+  $("msg").textContent = taps.length ? "録音終了" : "録音終了（タップなし）";
+  $("count").textContent = "";
+  $("tapArea").style.display = "none";
+  $("count").style.display = "none";
+  $("playBtns").style.display = "flex";
+  $("nextBtns").style.display = "flex";
+  if($("judgeOpt").checked) judge();
+}
+
+/* ===== タイミング調整 ===== */
+function startCal(){
+  ensureAudio();
+  clearTimeout(calTimer); cancelAnimationFrame(rafId);
+  state = "cal"; canTap = true; taps = []; active = {}; cal = null;
+  $("score").style.display = "none";
+  $("result").style.display = "none";
+  $("playBtns").style.display = "none"; $("nextBtns").style.display = "none";
+  $("msg").style.display = "block"; $("count").style.display = "block";
+  $("tapArea").style.display = "block"; $("tap").classList.remove("off");
+  $("msg").textContent = "タイミングをあわせるよ！\nメトロノームに合わせて好きなタイミングで\n4回つづけてタップしてね";
+  $("count").textContent = "○ ○ ○ ○";
+  var go = function(){
+    if(state !== "cal" || cal) return;
+    stopAll(); refreshOffset();
+    cal = {t0: ctx.currentTime + 0.5, beat: 60 / 75, lags: [], ks: []};
+    for(var i=0;i<90;i++) click(cal.t0 + i*cal.beat, false);   
+  };
+  var r = null;
+  try{ r = ctx.resume(); }catch(e){}
+  if(ctx.state === "running") go();
+  else if(r && r.then) r.then(function(){ setTimeout(go, 150); }, go);
+  calTimer = setTimeout(go, 1500);   
+}
+function calTap(at){
+  if(!cal) return;
+  var k = Math.round((at - cal.t0) / cal.beat);               
+  if(k < 0) return;
+  cal.ks.push(k);
+  cal.lags.push(at - (cal.t0 + k*cal.beat));                    
+  var n = cal.lags.length, d = "";
+  for(var i=0;i<4;i++) d += (i < n ? "●" : "○") + " ";
+  $("count").textContent = d;
+  if(n >= 4) finishCal();
+}
+function finishCal(){
+  var L = cal.lags.slice().sort(function(a, b){ return a - b; });
+  state = "caldone"; canTap = false;
+  stopAll();   
+  if(L[3] - L[0] > 0.25){                                       
+    $("msg").textContent = "タップがばらついたよ\nもう一度やってみよう";
+    $("count").textContent = "";
+    calTimer = setTimeout(startCal, 1500);
+    return;
+  }
+  calLag = Math.max(-0.3, Math.min(0.5, (L[1] + L[2]) / 2));    
+  var ms = Math.round(calLag*1000);
+  $("msg").textContent = "調整できたよ！（ずれ " + ms + "ミリ秒）";
+  $("count").textContent = "OK";
+  calTimer = setTimeout(function(){
+    if(state !== "caldone") return;
+    state = "popup";
+    $("popSub").textContent = "タイミング調整ずみ（ずれ " + ms + "ミリ秒）";
+    $("popup").style.display = "flex";                        
+  }, 700);
+}
+
+/* ===== 正答率判定 ===== */
+function judge(){
+  var has16 = notes.some(function(n){ return n.type==="x" || n.type==="d"; });
+  var tolBase = (has16 ? 0.18 : 0.3) * BEAT, tolLong = 0.4 * BEAT;
+  var PENALTY = 5;                 
+  var used = [], res = [], pairs = [], done = {};
+  var U = 0, hitU = 0, missU = 0, usedN = 0, hitN = 0, sum = 0;
+  var warnQ = false, warnS = false, warnTie = false, longShort = false;
+  
+  notes.forEach(function(n, i){
+    if(n.rest || n.tiedFrom) return;
+    n.units = n.chain >= 2 ? Math.floor(n.chain + 1e-6) : 1;   
+    U += n.units;
+    var tolN = tolBase;
+    if(n.units >= 2 || (n.start === 0 && !has16)) tolN = Math.max(tolBase, tolLong);
+    taps.forEach(function(t, j){
+      var d = Math.abs(t.s - n.start*BEAT);
+      if(d <= tolN) pairs.push({i:i, j:j, d:d});
+    });
+  });
+  pairs.sort(function(a, b){ return a.d - b.d; });     
+  pairs.forEach(function(p){
+    if(done[p.i] || used[p.j]) return;
+    done[p.i] = true; used[p.j] = true; usedN++; hitN++;
+    var n = notes[p.i], t = taps[p.j], hold = t.d / BEAT;   
+    sum += t.s - n.start*BEAT;
+    var covered = n.units;
+    if(n.units >= 2){
+      covered = Math.min(n.units, Math.max(1, Math.floor(hold + 0.5)));   
+    } else if(n.tie){
+      if(hold < 0.5 * n.chain) warnTie = true;
+    } else if(n.type === "q"){
+      if(hold < 0.5) warnQ = true;
+    } else if(n.type === "s"){
+      if(hold > 0.45) warnS = true;
+    }
+    hitU += covered; missU += n.units - covered;
+    res[p.i] = (covered === n.units);
+    if(covered < n.units) longShort = true;
+  });
+  notes.forEach(function(n, i){
+    if(n.rest || n.tiedFrom) return;
+    if(!done[i]){ res[i] = false; missU += n.units; }
+  });
+  notes.forEach(function(n, i){ if(n.tiedFrom) res[i] = res[i-1]; });
+
+  var restViolationCount = 0;
+  notes.forEach(function(n, i){
+    if(!n.rest) return;
+    U += 1;
+    var rStart = n.start * BEAT;
+    var rEnd = (n.start + n.duration) * BEAT;
+    
+    var violated = false;
+    taps.forEach(function(t){
+      if(t.s < rEnd - 0.02 && (t.s + t.d) > rStart + 0.02){ violated = true; }
+    });
+
+    if(violated){ res[i] = false; restViolationCount++; }
+    else { res[i] = true; hitU += 1; }
+  });
+
+  var extra = 0;
+  taps.forEach(function(t, j){
+    if(used[j]) return;
+    var inAnyRest = false;
+    notes.forEach(function(n){
+      if(n.rest){
+        var rStart = n.start * BEAT;
+        var rEnd = (n.start + n.duration) * BEAT;
+        if(t.s < rEnd - 0.02 && (t.s + t.d) > rStart + 0.02) inAnyRest = true;
+      }
+    });
+    if(!inAnyRest) extra++;
+  });
+
+  var score = Math.max(0, Math.round(hitU / U * 100 - extra * PENALTY));
+
+  var lines = [];
+  if(missU > 0) lines.push("たりない音があったよ（未タップ数：" + missU + "）");
+  if(extra > 0) lines.push("よけいな音があったよ（余計なタップ数：" + extra + "）");
+  if(restViolationCount > 0) {
+    lines.push("休符のところで音が鳴っていたよ（休符でのミス：" + restViolationCount + "箇所）");
+  }
+  if(warnS) lines.push("スタッカートはもっと短くタップしよう");
+  if(warnQ) lines.push("４分音符はもうすこし長めにタップしよう");
+  if(warnTie) lines.push("タイの音はもうすこし長めにタップしよう");
+  if(longShort) lines.push("長い音は、さいごまで押したままにしよう");
+  if(hitN > 0){
+    var avg = sum / hitN;
+    if(avg < -0.04) lines.push("すこしタイミングが早いよ");
+    else if(avg > 0.04) lines.push("すこしタイミングが遅いよ");
+  }
+  if(!lines.length) lines.push("ぜんぶばっちり！");
+
+  var col = score >= 80 ? "#2eaa5a" : (score >= 50 ? "#e08a00" : "#e2574c");
+  $("bigScore").innerHTML = '<span class="lbl">得点</span> <span class="num" style="color:' + col + '">' + score + '</span><span class="lbl">点</span>';
+  $("detail").innerHTML = lines.map(function(l){ return "<div>◇" + l + "</div>"; }).join("");
+  $("msg").style.display = "none";
+  $("result").style.display = "block";
+  
+  drawScore(notes, res, taps.filter(function(t, j){
+    if(used[j]) return false;
+    var inRest = false;
+    notes.forEach(function(n){
+      if(n.rest && t.s < (n.start+n.duration)*BEAT - 0.02 && (t.s+t.d) > n.start*BEAT + 0.02) inRest = true;
+    });
+    return !inRest;
+  }), taps);
+}
+
+/* ===== TAP処理 ===== */
+var tapBtn = $("tap");
+var STAR_COLORS = ["#ffd84a","#ffffff","#ff9ec5","#8fd3ff","#ffb04a"];
+function tapFx(e){
+  tapBtn.classList.remove("pulse"); void tapBtn.offsetWidth; tapBtn.classList.add("pulse");   
+  var box = $("fx");
+  if(box.childNodes.length > 70) return;                                                    
+  var r = $("tapArea").getBoundingClientRect();
+  var x = e.clientX - r.left, y = e.clientY - r.top;
+  var made = [];
+  function put(cls, nx, ny){
+    var d = document.createElement("div");
+    d.className = cls; d.style.left = nx + "px"; d.style.top = ny + "px";
+    box.appendChild(d); made.push(d); return d;
+  }
+  put("flash", x, y);
+  function fly(d, dist){
+    var a = Math.random() * Math.PI * 2, dd = dist * (0.5 + Math.random() * 0.7);
+    d.style.setProperty("--dx", (Math.cos(a) * dd) + "px");
+    d.style.setProperty("--dy", (Math.sin(a) * dd - 12) + "px");
+    d.style.setProperty("--rot", (Math.random() * 360 - 180) + "deg");
+    d.style.setProperty("--sc", STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)]);
+  }
+  for(var i=0;i<8;i++){
+    var st = put("star", x, y);
+    st.style.setProperty("--sz", (9 + Math.random() * 11) + "px");
+    fly(st, 80);
+  }
+  for(var j=0;j<3;j++) fly(put("spark", x, y), 60);
+  setTimeout(function(){ made.forEach(function(d){ if(d.parentNode) d.parentNode.removeChild(d); }); }, 700);
+}
+tapBtn.addEventListener("animationend", function(){ tapBtn.classList.remove("pulse"); });
+function latSec(){ return calLag + timingOfs / 1000; }
+function relTime(ts){ return (ts/1000 + perfOffset) - recStart - latSec(); }
+function releaseAll(){
+  for(var id in active){
+    var a = active[id];
+    if(a.v && ctx) a.v(ctx.currentTime);
+    if(a.tap){ a.tap.d = Math.max(0.05, TOTAL*BEAT - a.tap.s); if(a.rect) setMarker(a.rect, a.tap); }
+  }
+  active = {};
+  tapBtn.classList.remove("down");
+}
+tapBtn.addEventListener("pointerdown", function(e){
+  e.preventDefault();
+  if(!canTap || active[e.pointerId]) return;      
+  if(ctx && ctx.state !== "running"){ try{ ctx.resume(); }catch(x){} }
+  try{ tapBtn.setPointerCapture(e.pointerId); }catch(x){}
+  tapBtn.classList.add("down");
+  try{ tapFx(e); }catch(x){}
+  var a = {v: null, tap: null, rect: null};   
+  active[e.pointerId] = a;
+  if(state === "cal") calTap(e.timeStamp/1000 + perfOffset);
+  if(state === "run"){
+    var r = relTime(e.timeStamp);
+    if(r > -0.25 && r < TOTAL*BEAT){
+      if(r < 0) r = 0;
+      a.tap = {s:r, d:0.1};
+      taps.push(a.tap);
+      a.rect = addMarker(a.tap);
+    }
+  }
+});
+function release(e){
+  var a = active[e.pointerId];
+  if(!a) return;
+  if(a.v) a.v(ctx.currentTime);
+  if(a.tap){ a.tap.d = Math.max(0.05, relTime(e.timeStamp) - a.tap.s); if(a.rect) setMarker(a.rect, a.tap); }
+  delete active[e.pointerId];
+  if(!Object.keys(active).length) tapBtn.classList.remove("down");
+}
+tapBtn.addEventListener("pointerup", release);
+tapBtn.addEventListener("pointercancel", release);
+tapBtn.addEventListener("lostpointercapture", release);
+tapBtn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+
+/* ===== ボタン・画面遷移 ===== */
+function guard(){ var n = performance.now(); if(n < busyUntil) return false; busyUntil = n + 300; return true; }
+$("demoBtn").addEventListener("click", function(){
+  if(!guard()) return; ensureAudio(); stopAll();
+  var b = ctx.currentTime + 0.15;
+  scheduleDemo(b); metro(b);
+});
+$("mineBtn").addEventListener("click", function(){
+  if(!guard()) return; ensureAudio(); stopAll();
+  var b = ctx.currentTime + 0.15;
+  metro(b);
+  taps.forEach(function(t){ piano(b + t.s, Math.min(Math.max(t.d, 0.05), 2)); });
+});
+$("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
+$("nextBtn").addEventListener("click", function(){
+  if(!guard()) return;
+  newProblem(); startRun();
+});
+$("back").addEventListener("click", goTop);
+$("popBtn").addEventListener("click", function(){
+  if(state !== "popup") return;
+  $("popup").style.display = "none";
+  newProblem(); startRun();
+});
+
+/* クエストモードクリック時の挙動 */
+$("goQuest").addEventListener("click", function(){
+  ensureAudio();
+  loadAccounts();
+  if(accounts.length === 0){
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    renderAccountList();
+    show("sCharSelect");
+  }
+});
+
+$("goPrac").addEventListener("click", function(){
+  ensureAudio(); show("sPrac");
+});
+$("goSet").addEventListener("click", function(){ show("sSet"); });
+$("profileBtn").addEventListener("click", function(){
+  loadAccounts();
+  if(accounts.length === 0){
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    renderAccountList();
+    show("sCharSelect");
+  }
+});
+
+/* 練習モードのスタートボタン設定 */
+$("goBtn").addEventListener("click", function(){
+  ensureAudio();
+  show("sGame");
+  newProblem();
+  startCal();
+});
+
+/* ===== キャラクター・アイコン選択画面の構築 ===== */
+function renderIconGrid(){
+  const grid = $("iconGrid");
+  grid.innerHTML = ICONS.map(iconPath => `
+    <div class="icon-item ${iconPath === selectedNewIcon ? 'selected' : ''}" data-icon="${iconPath}">
+      <img src="${iconPath}">
+    </div>
+  `).join("");
+
+  grid.querySelectorAll(".icon-item").forEach(el => {
+    el.addEventListener("click", function(){
+      selectedNewIcon = this.getAttribute("data-icon");
+      renderIconGrid();
+    });
+  });
+}
+
+function renderAccountList(){
+  const list = $("accountList");
+  list.innerHTML = accounts.map(acc => `
+    <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}">
+      <div style="display:flex;align-items:center;gap:12px;font-size:18px">
+        <img src="${acc.icon}" style="width:40px;height:40px;object-fit:contain">
+        <span style="font-weight:bold">${acc.nickname}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:#777">🪙${acc.tokens || 0}</span>
+        <button class="del-acc-btn" data-id="${acc.id}" style="font-size:12px;padding:6px 10px;background:#e2574c;box-shadow:0 2px 0 #b33;border-radius:8px">削除</button>
+      </div>
+    </div>
+  `).join("");
+
+  list.querySelectorAll(".account-card").forEach(card => {
+    card.addEventListener("click", function(e){
+      if(e.target.classList.contains("del-acc-btn")) return;
+      const id = this.getAttribute("data-id");
+      currentAccount = accounts.find(a => a.id === id);
+      saveAccountsToLocal();
+      show("sQuest");
+      updateQuestUI();
+    });
+  });
+
+  list.querySelectorAll(".del-acc-btn").forEach(btn => {
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      const id = this.getAttribute("data-id");
+      if(confirm("このキャラクターを削除しますか？")){
+        accounts = accounts.filter(a => a.id !== id);
+        if(currentAccount && currentAccount.id === id){
+          currentAccount = accounts.length > 0 ? accounts[0] : null;
+        }
+        saveAccountsToLocal();
+        renderAccountList();
+      }
+    });
+  });
+}
+
+/* 既存キャラ選択画面から新規作成へ */
+$("toNewCharBtn").addEventListener("click", function(){
+  selectedNewIcon = ICONS[0];
+  renderIconGrid();
+  show("sNewCharIcon");
+});
+
+/* アイコン選択完了 → ニックネーム入力画面へ */
+$("nextToNameBtn").addEventListener("click", function(){
+  $("selectedIconPreview").src = selectedNewIcon;
+  $("newNickname").value = "";
+  show("sNewCharName");
+});
+
+/* ニックネーム登録＆クエストへ出発 */
+$("createAccBtn").addEventListener("click", function(){
+  const nick = $("newNickname").value.trim();
+  if(!nick){ alert("なまえを入力してね！"); return; }
+  
+  const newAcc = {
+    id: 'user_' + Math.random().toString(36).substring(2, 9),
+    secret_code: 'rc-' + Math.floor(1000 + Math.random() * 9000),
+    icon: selectedNewIcon,
+    nickname: nick,
+    tokens: 0,
+    position: 1
+  };
+  accounts.push(newAcc);
+  currentAccount = newAcc;
+  saveAccountsToLocal();
+  if(supabaseClient){
+    supabaseClient.from('profiles').upsert({
+      id: newAcc.id, secret_code: newAcc.secret_code, nickname: newAcc.nickname, icon: newAcc.icon
+    }).then(()=>{});
+  }
+  
+  show("sQuest");
+  updateQuestUI();
+});
+
+/* トグル・設定関連 */
+function makeToggle(boxId, labels, init, onPick){
+  var box = $(boxId), btns = [];
+  if(!box) return;
+  labels.forEach(function(lb, i){
+    var b = document.createElement("button");
+    b.className = "tg" + (i===init ? " on" : ""); b.textContent = lb;
+    b.addEventListener("click", function(){
+      btns.forEach(function(x){ x.classList.remove("on"); });
+      b.classList.add("on"); onPick(i);
+    });
+    box.appendChild(b); btns.push(b);
+  });
+}
+makeToggle("lvBtns", ["4分音符まで","8分音符まで","16分音符まで","ランダム"], 3, function(i){ lvl = i; });
+makeToggle("demoTg", ["お手本あり","お手本なし"], 0, function(i){ demoOn = (i===0); });
+
+var saved = {};
+try{ saved = JSON.parse(localStorage.getItem("rhythmSettings") || "{}"); }catch(e){}
+if(saved.m != null) volMetro = saved.m;
+if(saved.t != null) volTap = saved.t;
+if(saved.o != null) timingOfs = saved.o;
+if(saved.th != null) themeIdx = saved.th;
+try{ document.body.setAttribute("data-theme", String(themeIdx + 1)); }catch(e){}
+if(saved.b) setBpm(saved.b);
+function saveSet(){ try{ localStorage.setItem("rhythmSettings", JSON.stringify({m:volMetro, t:volTap, b:BPM, o:timingOfs, th:themeIdx})); }catch(e){} }
+function setTheme(i){
+  themeIdx = i;
+  try{ document.body.setAttribute("data-theme", String(i + 1)); }catch(e){}
+  saveSet();
+}
+makeToggle("themeTg", ["パステル","トロピカル","オーシャン"], themeIdx, setTheme);
+
+$("volM").value = volMetro; $("volMv").textContent = volMetro;
+$("volT").value = volTap;   $("volTv").textContent = volTap;
+$("volM").addEventListener("input", function(){ volMetro = parseInt(this.value,10); $("volMv").textContent = volMetro; saveSet(); });
+$("volT").addEventListener("input", function(){ volTap = parseInt(this.value,10); $("volTv").textContent = volTap; saveSet(); });
+$("ofsS").value = timingOfs; $("ofsV").textContent = timingOfs;
+$("ofsS").addEventListener("input", function(){ timingOfs = parseInt(this.value,10); $("ofsV").textContent = timingOfs; saveSet(); });
+
+[60,75,90,105,120].forEach(function(v){
+  var o = document.createElement("option"); o.value = v; o.textContent = v; if(v===BPM) o.selected = true;
+  $("bpmSel").appendChild(o);
+});
+$("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10)); saveSet(); });
+
+// 初期ロード実行
+loadAccounts();
+})();
+
