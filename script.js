@@ -721,7 +721,7 @@ function tapFx(e){
   setTimeout(function(){ made.forEach(function(d){ if(d.parentNode) d.parentNode.removeChild(d); }); }, 700);
 }
 tapBtn.addEventListener("animationend", function(){ tapBtn.classList.remove("pulse"); });
-function latSec(){ return calLag + 0.03 + timingOfs / 1000; }
+function latSec(){ return calLag + 0.10 + timingOfs / 1000; }
 function relTime(ts){ return (ts/1000 + perfOffset) - recStart - latSec(); }
 function releaseAll(){
   for(var id in active){
