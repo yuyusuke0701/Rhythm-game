@@ -568,7 +568,7 @@ function finishCal(){
   }
   calLag = Math.max(-0.3, Math.min(0.5, (L[1] + L[2]) / 2));    
    // ▼ 30ミリ秒ほど早めに補正します
-  calLag -= 0.20; 
+  calLag -= 0.15; 
    
   var ms = Math.round(calLag*1000);
   $("msg").textContent = "調整できたよ！（ずれ " + ms + "ミリ秒）";
