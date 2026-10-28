@@ -439,9 +439,52 @@ var taps = [], active = {}, rafId = 0, busyUntil = 0;
 var calLag = 0, cal = null, calTimer = 0;
 var COUNT_WORDS = ["いち","に","さん","はい！"];
 
+/* ===== START画面・トップ画面BGM ===== */
+var topBgm = new Audio("Sound/BGM/ちょっと優雅なひとときを.mp3");
+topBgm.loop = true;
+topBgm.preload = "auto";
+topBgm.volume = 0.45;
+var startTapSound = new Audio("Sound/BGM/システム決定音_6.mp3");
+startTapSound.preload = "auto";
+startTapSound.volume = 0.8;
+function startTopBgm(){
+  if(topBgm.paused){
+    topBgm.currentTime = 0;
+    var p = topBgm.play();
+    if(p && p.catch) p.catch(function(){});
+  }
+}
+function stopTopBgm(){
+  topBgm.pause();
+  topBgm.currentTime = 0;
+}
+function playStartTapSound(){
+  try {
+    startTapSound.currentTime = 0;
+    var p = startTapSound.play();
+    if(p && p.catch) p.catch(function(){});
+  } catch(e) {}
+}
+function enterFromStart(){
+  var startScreen = $("sStart");
+  if(!startScreen || startScreen.dataset.leaving === "1") return;
+  startScreen.dataset.leaving = "1";
+  playStartTapSound();
+  // トップ画面を背面に表示してからSTART画面をフェードアウト
+  $("sTop").classList.add("on");
+  startScreen.classList.add("leaving");
+  setTimeout(function(){
+    show("sTop");
+    startScreen.dataset.leaving = "0";
+    startScreen.classList.remove("leaving");
+  }, 550);
+}
+
 function show(id){
-  ["sTop","sSet","sPrac","sGame","sQuest","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
-  $("back").style.display = id==="sTop" ? "none" : "block";
+  ["sStart","sTop","sSet","sPrac","sGame","sQuest","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
+  $("back").style.display = (id==="sTop" || id==="sStart") ? "none" : "block";
+  if(id === "sTop") startTopBgm();
+  else stopTopBgm();
 }
 function goTop(){
   state = "idle"; canTap = false;
@@ -721,7 +764,7 @@ function tapFx(e){
   setTimeout(function(){ made.forEach(function(d){ if(d.parentNode) d.parentNode.removeChild(d); }); }, 700);
 }
 tapBtn.addEventListener("animationend", function(){ tapBtn.classList.remove("pulse"); });
-function latSec(){ return calLag + 0.045 + timingOfs / 1000; }
+function latSec(){ return calLag + 0.05 + timingOfs / 1000; }
 function relTime(ts){ return (ts/1000 + perfOffset) - recStart - latSec(); }
 function releaseAll(){
   for(var id in active){
@@ -783,6 +826,14 @@ $("nextBtn").addEventListener("click", function(){
   if(!guard()) return;
   newProblem(); startRun();
 });
+$("sStart").addEventListener("click", enterFromStart);
+$("sStart").addEventListener("keydown", function(e){
+  if(e.key === "Enter" || e.key === " "){
+    e.preventDefault();
+    enterFromStart();
+  }
+});
+
 $("back").addEventListener("click", goTop);
 $("popBtn").addEventListener("click", function(){
   if(state !== "popup") return;

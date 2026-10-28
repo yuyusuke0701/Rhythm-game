@@ -183,3 +183,42 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
   #sNewCharIcon { padding-top: 48px; gap: 6px; }
   #sNewCharIcon .icon-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
+
+
+/* ===== START画面 ===== */
+#sStart {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100%;
+  height: 100dvh;
+  flex: none;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  justify-content: flex-end;
+  background: #222 url("picture/start01.jpg") center center / cover no-repeat;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity .55s ease, transform .55s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+#sStart.leaving {
+  opacity: 0;
+  transform: scale(1.015);
+  pointer-events: none;
+}
+.start-prompt {
+  width: 100%;
+  padding: 18px 12px max(24px, env(safe-area-inset-bottom));
+  color: #fff;
+  text-align: center;
+  font-size: clamp(18px, 4.5vw, 30px);
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-shadow: 0 2px 5px #000, 0 0 12px rgba(0,0,0,.8);
+  background: linear-gradient(transparent, rgba(0,0,0,.48));
+  pointer-events: none;
+}
