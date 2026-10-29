@@ -231,7 +231,7 @@ function startBossQuiz(){
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
 function setBpm(v){ BPM = v; BEAT = 60 / v; }
 
-/* ===== 問題（トークン） ===== */
+/* ===== 問題データ（分類・No付与） ===== */
 var levels = [
   {name:"4分音符まで", pats:[
     [["q","q","q","q"],["q","q","q","q"]],
@@ -335,12 +335,14 @@ function xb(b){ return X0 + TS_W + b * PB; }
 function xOf(start){ return xb(start) + PAD; }
 var svg = document.getElementById("svg");
 var NS = "http://www.w3.org/2000/svg";
-function el(n, a){ var e = document.createElementNS(NS, n); for(var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
+function el(n, a){ var e = document.createElementNS(NS, n); for(var k in a) e.setAttribute(k, a[k]); if(svg) svg.appendChild(e); return e; }
 function beam(xa, xz, y, th){ el("polygon",{points:xa+","+y+" "+xz+","+y+" "+xz+","+(y+th)+" "+xa+","+(y+th),fill:"#222"}); }
 
-function drawScore(notes, res, extras, marks){
-  while(svg.firstChild) svg.removeChild(svg.firstChild);
+function drawScoreToSvg(targetSvg, notes, res, extras, marks){
+  while(targetSvg.firstChild) targetSvg.removeChild(targetSvg.firstChild);
   var top = 40, bot = 140, HY = 105, STEM = 50, TOPY = HY - STEM;
+  var oldSvg = svg;
+  svg = targetSvg;
   el("rect",{x:X0,y:top,width:X1-X0,height:bot-top,fill:"none",stroke:"#333","stroke-width":3});
   el("line",{x1:xb(4),y1:top,x2:xb(4),y2:bot,stroke:"#333","stroke-width":3});
   el("line",{x1:X0+TS_W,y1:100,x2:X1,y2:100,stroke:"#ccc","stroke-width":1});
@@ -405,14 +407,11 @@ function drawScore(notes, res, extras, marks){
       p = q + 1;
     }
   });
-  (extras || []).forEach(function(t){
-    var bx = Math.min(X1 - 10, Math.max(X0 + TS_W + 6, xb(t.s / BEAT) + PAD));
-    var st = {stroke:"#e2574c","stroke-width":5,"stroke-linecap":"round"};
-    st.x1 = bx-8; st.y1 = 14; st.x2 = bx+8; st.y2 = 30; el("line", st);
-    st.x1 = bx+8; st.y1 = 14; st.x2 = bx-8; st.y2 = 30; el("line", st);
-    el("line",{x1:bx,y1:32,x2:bx,y2:40,stroke:"#e2574c","stroke-width":2});
-  });
-  (marks || []).forEach(function(t){ addMarker(t); });
+  svg = oldSvg;
+}
+
+function drawScore(notes, res, extras, marks){
+  if(svg) drawScoreToSvg(svg, notes, res, extras, marks);
 }
 
 function setMarker(m, t){
@@ -432,12 +431,28 @@ function addMarker(t){
 
 /* ===== 状態 ===== */
 var $ = function(id){ return document.getElementById(id); };
-var notes = [], curPat = null, lvl = 3, demoOn = true;
+var notes = [], curPat = null, currentLevelIndex = 0, currentProblemIndex = 0, demoOn = true;
 var state = "idle", useDemo = true, canTap = false;
 var t0, countStart, recStart, recEnd;
 var taps = [], active = {}, rafId = 0, busyUntil = 0;
 var calLag = 0, cal = null, calTimer = 0;
 var COUNT_WORDS = ["いち","に","さん","はい！"];
+
+/* ===== ハイスコア管理 ===== */
+function getHighScore(lvlIdx, probIdx){
+  if(!currentAccount) return 0;
+  if(!currentAccount.highScores) currentAccount.highScores = {};
+  return currentAccount.highScores[`${lvlIdx}_${probIdx}`] || 0;
+}
+function setHighScore(lvlIdx, probIdx, score){
+  if(!currentAccount) return;
+  if(!currentAccount.highScores) currentAccount.highScores = {};
+  let key = `${lvlIdx}_${probIdx}`;
+  if(score > (currentAccount.highScores[key] || 0)){
+    currentAccount.highScores[key] = score;
+    saveAccountsToLocal();
+  }
+}
 
 /* ===== START画面・トップ画面BGM ===== */
 var topBgm = new Audio("Sound/BGM/ちょっと優雅なひとときを.mp3");
@@ -470,7 +485,6 @@ function enterFromStart(){
   if(!startScreen || startScreen.dataset.leaving === "1") return;
   startScreen.dataset.leaving = "1";
   playStartTapSound();
-  // トップ画面を背面に表示してからSTART画面をフェードアウト
   $("sTop").classList.add("on");
   startScreen.classList.add("leaving");
   setTimeout(function(){
@@ -496,15 +510,15 @@ function goTop(){
   show("sTop");
 }
 
-function newProblem(){
-  var pool = [];
-  if(lvl < 3) pool = levels[lvl].pats; else levels.forEach(function(l){ pool = pool.concat(l.pats); });
-  var p;
-  do { p = pool[Math.floor(Math.random()*pool.length)]; } while(p===curPat && pool.length>1);
-  curPat = p;
-  notes = buildNotes(p);
+function loadSelectedProblem(lvlIdx, probIdx){
+  currentLevelIndex = lvlIdx;
+  currentProblemIndex = probIdx;
+  var levelObj = levels[lvlIdx];
+  curPat = levelObj.pats[probIdx];
+  notes = buildNotes(curPat);
   drawScore(notes);
 }
+
 function scheduleDemo(base){
   notes.forEach(function(n){
     if(n.rest || n.tiedFrom) return;
@@ -676,7 +690,8 @@ function judge(){
     
     var violated = false;
     taps.forEach(function(t){
-      if(t.s < rEnd - 0.02 && (t.s + t.d) > rStart + 0.02){ violated = true; }
+      // 休符の判定を少し緩くする：余裕を持たせた判定（重なりが0.08秒未満、あるいは全体に占める割合等なら許容）
+      if(t.s < rEnd - 0.08 && (t.s + t.d) > rStart + 0.08){ violated = true; }
     });
 
     if(violated){ res[i] = false; restViolationCount++; }
@@ -691,13 +706,14 @@ function judge(){
       if(n.rest){
         var rStart = n.start * BEAT;
         var rEnd = (n.start + n.duration) * BEAT;
-        if(t.s < rEnd - 0.02 && (t.s + t.d) > rStart + 0.02) inAnyRest = true;
+        if(t.s < rEnd - 0.08 && (t.s + t.d) > rStart + 0.08) inAnyRest = true;
       }
     });
     if(!inAnyRest) extra++;
   });
 
   var score = Math.max(0, Math.round(hitU / U * 100 - extra * PENALTY));
+  setHighScore(currentLevelIndex, currentProblemIndex, score);
 
   var lines = [];
   if(missU > 0) lines.push("たりない音があったよ（未タップ数：" + missU + "）");
@@ -726,7 +742,7 @@ function judge(){
     if(used[j]) return false;
     var inRest = false;
     notes.forEach(function(n){
-      if(n.rest && t.s < (n.start+n.duration)*BEAT - 0.02 && (t.s+t.d) > n.start*BEAT + 0.02) inRest = true;
+      if(n.rest && t.s < (n.start+n.duration)*BEAT - 0.08 && (t.s+t.d) > n.start*BEAT + 0.08) inRest = true;
     });
     return !inRest;
   }), taps);
@@ -824,7 +840,15 @@ $("mineBtn").addEventListener("click", function(){
 $("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
 $("nextBtn").addEventListener("click", function(){
   if(!guard()) return;
-  newProblem(); startRun();
+  // 次の問題へ進む（次のインデックス、カテゴリ内ループ、または次のカテゴリへ）
+  var lvlObj = levels[currentLevelIndex];
+  var nextProbIdx = currentProblemIndex + 1;
+  if(nextProbIdx >= lvlObj.pats.length){
+    nextProbIdx = 0;
+    currentLevelIndex = (currentLevelIndex + 1) % levels.length;
+  }
+  loadSelectedProblem(currentLevelIndex, nextProbIdx);
+  startRun();
 });
 $("sStart").addEventListener("click", enterFromStart);
 $("sStart").addEventListener("keydown", function(e){
@@ -838,7 +862,7 @@ $("back").addEventListener("click", goTop);
 $("popBtn").addEventListener("click", function(){
   if(state !== "popup") return;
   $("popup").style.display = "none";
-  newProblem(); startRun();
+  startRun();
 });
 
 /* クエストモードクリック時の挙動 */
@@ -856,7 +880,9 @@ $("goQuest").addEventListener("click", function(){
 });
 
 $("goPrac").addEventListener("click", function(){
-  ensureAudio(); show("sPrac");
+  ensureAudio();
+  renderProblemList(0); // 初期は「4分音符まで」を表示
+  show("sPrac");
 });
 $("goSet").addEventListener("click", function(){ show("sSet"); });
 $("profileBtn").addEventListener("click", function(){
@@ -871,13 +897,78 @@ $("profileBtn").addEventListener("click", function(){
   }
 });
 
-/* 練習モードのスタートボタン設定 */
-$("goBtn").addEventListener("click", function(){
-  ensureAudio();
-  show("sGame");
-  newProblem();
-  startCal();
-});
+/* ===== 練習モードの問題一覧・カテゴリ構築 ===== */
+var selectedPracLevel = 0;
+function renderProblemList(lvlIdx){
+  selectedPracLevel = lvlIdx;
+  var container = $("problemListContainer");
+  container.innerHTML = "";
+  var pats = levels[lvlIdx].pats;
+
+  pats.forEach(function(pat, idx){
+    var notesTmp = buildNotes(pat);
+    var hiScore = getHighScore(lvlIdx, idx);
+
+    var card = document.createElement("div");
+    card.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:#fff; padding:8px 12px; border-radius:14px; border:2px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.06); cursor:pointer; gap:10px;";
+    
+    // 左側：Noとハイスコア
+    var infoDiv = document.createElement("div");
+    infoDiv.style.cssText = "min-width:90px; font-weight:bold; font-size:15px; color:#444;";
+    infoDiv.innerHTML = `No.${idx + 1}<br><span style="font-size:12px; color:#e2592f;">最高: ${hiScore}点</span>`;
+    card.appendChild(infoDiv);
+
+    // 中央：楽譜プレビュー用SVG
+    var svgWrap = document.createElement("div");
+    svgWrap.style.cssText = "flex:1; background:#fafafa; border-radius:8px; padding:2px; overflow:hidden;";
+    var miniSvg = document.createElementNS(NS, "svg");
+    miniSvg.setAttribute("viewBox", "0 0 800 172");
+    miniSvg.style.cssText = "width:100%; height:55px; display:block;";
+    drawScoreToSvg(miniSvg, notesTmp);
+    svgWrap.appendChild(miniSvg);
+    card.appendChild(svgWrap);
+
+    // 右側：練習スタートボタン
+    var playBtn = document.createElement("button");
+    playBtn.textContent = "えらぶ";
+    playBtn.style.cssText = "font-size:14px; padding:8px 14px; border-radius:12px;";
+    playBtn.addEventListener("click", function(e){
+      e.stopPropagation();
+      ensureAudio();
+      loadSelectedProblem(lvlIdx, idx);
+      show("sGame");
+      startCal();
+    });
+    card.appendChild(playBtn);
+
+    card.addEventListener("click", function(){
+      ensureAudio();
+      loadSelectedProblem(lvlIdx, idx);
+      show("sGame");
+      startCal();
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// レベル切替ボタンの生成（4分音符まで、8分音符まで、16分音符まで）
+function makePracticeLevelToggles(){
+  var box = $("lvBtns");
+  if(!box || box.children.length > 0) return;
+  levels.forEach(function(lvl, i){
+    var b = document.createElement("button");
+    b.className = "tg" + (i === 0 ? " on" : "");
+    b.textContent = lvl.name;
+    b.addEventListener("click", function(){
+      Array.from(box.children).forEach(function(x){ x.classList.remove("on"); });
+      b.classList.add("on");
+      renderProblemList(i);
+    });
+    box.appendChild(b);
+  });
+}
+makePracticeLevelToggles();
 
 /* ===== キャラクター・アイコン選択画面の構築 ===== */
 function renderIconGrid(){
@@ -963,7 +1054,8 @@ $("createAccBtn").addEventListener("click", function(){
     icon: selectedNewIcon,
     nickname: nick,
     tokens: 0,
-    position: 1
+    position: 1,
+    highScores: {}
   };
   accounts.push(newAcc);
   currentAccount = newAcc;
@@ -992,7 +1084,6 @@ function makeToggle(boxId, labels, init, onPick){
     box.appendChild(b); btns.push(b);
   });
 }
-makeToggle("lvBtns", ["4分音符まで","8分音符まで","16分音符まで","ランダム"], 3, function(i){ lvl = i; });
 makeToggle("demoTg", ["お手本あり","お手本なし"], 0, function(i){ demoOn = (i===0); });
 
 var saved = {};
@@ -1027,4 +1118,3 @@ $("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10
 // 初期ロード実行
 loadAccounts();
 })();
-
