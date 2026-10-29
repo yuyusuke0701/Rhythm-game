@@ -231,7 +231,7 @@ function startBossQuiz(){
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
 function setBpm(v){ BPM = v; BEAT = 60 / v; }
 
-/* ===== 問題データ（分類・No付与） ===== */
+/* ===== 問題データ ===== */
 var levels = [
   {name:"4分音符まで", pats:[
     [["q","q","q","q"],["q","q","q","q"]],
@@ -496,10 +496,39 @@ function enterFromStart(){
 
 function show(id){
   ["sStart","sTop","sSet","sPrac","sGame","sQuest","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
-  $("back").style.display = (id==="sTop" || id==="sStart") ? "none" : "block";
+  
+  // 戻るボタンの表示・文言制御
+  var backBtn = $("back");
+  if(id === "sTop" || id === "sStart"){
+    backBtn.style.display = "none";
+  } else if(id === "sGame"){
+    backBtn.style.display = "block";
+    backBtn.textContent = "← 問題リストへもどる";
+  } else {
+    backBtn.style.display = "block";
+    backBtn.textContent = "← トップへ";
+  }
+
   if(id === "sTop") startTopBgm();
   else stopTopBgm();
 }
+
+function goBackAction(){
+  if($("sGame").classList.contains("on")){
+    // 練習モードのゲーム画面から戻る場合は問題一覧（sPrac）へ戻す
+    state = "idle"; canTap = false;
+    cancelAnimationFrame(rafId);
+    clearTimeout(calTimer);
+    $("popup").style.display = "none";
+    releaseAll();
+    stopAll();
+    renderProblemList(selectedPracLevel);
+    show("sPrac");
+  } else {
+    goTop();
+  }
+}
+
 function goTop(){
   state = "idle"; canTap = false;
   cancelAnimationFrame(rafId);
@@ -690,7 +719,6 @@ function judge(){
     
     var violated = false;
     taps.forEach(function(t){
-      // 休符の判定を少し緩くする：余裕を持たせた判定（重なりが0.08秒未満、あるいは全体に占める割合等なら許容）
       if(t.s < rEnd - 0.08 && (t.s + t.d) > rStart + 0.08){ violated = true; }
     });
 
@@ -840,7 +868,6 @@ $("mineBtn").addEventListener("click", function(){
 $("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
 $("nextBtn").addEventListener("click", function(){
   if(!guard()) return;
-  // 次の問題へ進む（次のインデックス、カテゴリ内ループ、または次のカテゴリへ）
   var lvlObj = levels[currentLevelIndex];
   var nextProbIdx = currentProblemIndex + 1;
   if(nextProbIdx >= lvlObj.pats.length){
@@ -858,7 +885,7 @@ $("sStart").addEventListener("keydown", function(e){
   }
 });
 
-$("back").addEventListener("click", goTop);
+$("back").addEventListener("click", goBackAction);
 $("popBtn").addEventListener("click", function(){
   if(state !== "popup") return;
   $("popup").style.display = "none";
@@ -881,7 +908,7 @@ $("goQuest").addEventListener("click", function(){
 
 $("goPrac").addEventListener("click", function(){
   ensureAudio();
-  renderProblemList(0); // 初期は「4分音符まで」を表示
+  renderProblemList(0);
   show("sPrac");
 });
 $("goSet").addEventListener("click", function(){ show("sSet"); });
@@ -912,13 +939,11 @@ function renderProblemList(lvlIdx){
     var card = document.createElement("div");
     card.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:#fff; padding:8px 12px; border-radius:14px; border:2px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.06); cursor:pointer; gap:10px;";
     
-    // 左側：Noとハイスコア
     var infoDiv = document.createElement("div");
     infoDiv.style.cssText = "min-width:90px; font-weight:bold; font-size:15px; color:#444;";
     infoDiv.innerHTML = `No.${idx + 1}<br><span style="font-size:12px; color:#e2592f;">最高: ${hiScore}点</span>`;
     card.appendChild(infoDiv);
 
-    // 中央：楽譜プレビュー用SVG
     var svgWrap = document.createElement("div");
     svgWrap.style.cssText = "flex:1; background:#fafafa; border-radius:8px; padding:2px; overflow:hidden;";
     var miniSvg = document.createElementNS(NS, "svg");
@@ -928,7 +953,6 @@ function renderProblemList(lvlIdx){
     svgWrap.appendChild(miniSvg);
     card.appendChild(svgWrap);
 
-    // 右側：練習スタートボタン
     var playBtn = document.createElement("button");
     playBtn.textContent = "えらぶ";
     playBtn.style.cssText = "font-size:14px; padding:8px 14px; border-radius:12px;";
@@ -952,7 +976,6 @@ function renderProblemList(lvlIdx){
   });
 }
 
-// レベル切替ボタンの生成（4分音符まで、8分音符まで、16分音符まで）
 function makePracticeLevelToggles(){
   var box = $("lvBtns");
   if(!box || box.children.length > 0) return;
@@ -1029,21 +1052,18 @@ function renderAccountList(){
   });
 }
 
-/* 既存キャラ選択画面から新規作成へ */
 $("toNewCharBtn").addEventListener("click", function(){
   selectedNewIcon = ICONS[0];
   renderIconGrid();
   show("sNewCharIcon");
 });
 
-/* アイコン選択完了 → ニックネーム入力画面へ */
 $("nextToNameBtn").addEventListener("click", function(){
   $("selectedIconPreview").src = selectedNewIcon;
   $("newNickname").value = "";
   show("sNewCharName");
 });
 
-/* ニックネーム登録＆クエストへ出発 */
 $("createAccBtn").addEventListener("click", function(){
   const nick = $("newNickname").value.trim();
   if(!nick){ alert("なまえを入力してね！"); return; }
@@ -1115,6 +1135,5 @@ $("ofsS").addEventListener("input", function(){ timingOfs = parseInt(this.value,
 });
 $("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10)); saveSet(); });
 
-// 初期ロード実行
 loadAccounts();
 })();
