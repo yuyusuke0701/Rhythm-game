@@ -91,14 +91,16 @@
     </div>
   </div></div>
 
-  <!-- 練習モードメニュー画面 -->
-  <div class="screen pad" id="sPrac">
-    <h2>練習モード</h2>
-    <div class="opt">もんだい</div>
-    <div class="row" id="lvBtns"></div>
-    <div class="opt">お手本</div>
-    <div class="row" id="demoTg"></div>
-    <button id="goBtn">スタート</button>
+  <!-- 練習モード問題一覧画面 -->
+  <div class="screen pad" id="sPrac" style="gap:8px; max-width:800px; margin:0 auto;">
+    <h2>練習モード：もんだいを選んでね</h2>
+    <div class="row" id="lvBtns" style="margin-bottom:4px;"></div>
+    <div class="opt" style="justify-content:space-between; width:100%; max-width:700px; padding:0 4px;">
+      <span>お手本設定</span>
+      <div id="demoTg" style="display:flex; gap:8px;"></div>
+    </div>
+    <!-- 縦に並べてスクロールして選択する問題一覧コンテナ -->
+    <div id="problemListContainer" style="width:100%; max-width:700px; max-height:48vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:4px;"></div>
   </div>
 
   <!-- ゲームプレイ画面 -->
