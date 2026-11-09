@@ -24,29 +24,64 @@
   <!-- TOP画面 -->
   <div class="screen" id="sTop">
     <h1>がくふがよめる！<br>リズムマスターへの道</h1>
-    <button class="big" id="goQuest">1. クエストモード (すごろく)</button>
+    <button class="big" id="goQuest">1. ストーリーモード</button>
     <button class="big" id="goPrac">2. 練習モード</button>
     <button class="big" id="goSet">3. 設定</button>
   </div>
 
-  <!-- クエストモード（すごろくマップ）画面 -->
-  <div class="screen pad" id="sQuest" style="gap:8px">
-    <h2>🗺️ クエストマップ (ステージ1)</h2>
-    <div style="font-size:15px;color:#555;display:flex;gap:15px;align-items:center">
-      <span>🪙 音のカケラ: <b id="tokenCount" style="color:var(--title)">0</b>個</span>
-      <span>📍 現在地: マス <b id="currentPos">1</b> / 10</span>
+  <!-- 章（作曲家）選択画面 -->
+  <div class="screen pad" id="sStoryChapters" style="gap:12px">
+    <h2>📖 ストーリーモード：章をえらんでね</h2>
+    <div id="chapterList" style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:500px;align-items:center;padding:4px"></div>
+  </div>
+
+  <!-- ステージ選択マップ画面 -->
+  <div class="screen pad" id="sStoryMap" style="gap:10px">
+    <h2 id="mapChapterTitle">第1章 〜ベートーヴェン〜</h2>
+    <div class="story-map-container">
+      <!-- 中央上：作曲家アイコンとボス挑戦ボタン -->
+      <div id="bossNode" class="map-boss-node locked">
+        <img id="mapBossIcon" src="" alt="作曲家">
+        <span id="bossNodeLabel">🔒 ボスに挑戦</span>
+      </div>
+      <!-- ステージ1〜3の星ノード -->
+      <div class="map-stages-row">
+        <div class="map-stage-node" data-stage="0">
+          <div class="stage-star-badge">⭐ <span id="starScore0">0</span>点</div>
+          <div class="stage-circle">ステージ1</div>
+        </div>
+        <div class="map-stage-node" data-stage="1">
+          <div class="stage-star-badge">⭐ <span id="starScore1">0</span>点</div>
+          <div class="stage-circle">ステージ2</div>
+        </div>
+        <div class="map-stage-node" data-stage="2">
+          <div class="stage-star-badge">⭐ <span id="starScore2">0</span>点</div>
+          <div class="stage-circle">ステージ3</div>
+        </div>
+      </div>
     </div>
-    <div class="board-container" id="boardContainer"></div>
-    <button id="rollDiceBtn" style="padding:12px 36px;font-size:20px;">🎲 すごろくを進む！</button>
+    <button id="backToChaptersBtn" style="font-size:15px;padding:8px 24px;background:#939393;">← 章のせんたくへ</button>
   </div>
 
   <!-- ボスバトル（曲あてクイズ）画面 -->
   <div class="screen pad" id="sQuiz" style="gap:10px">
-    <h2>🎼 ボスバトル！ ベートーベン</h2>
-    <div style="font-size:16px;text-align:center;background:#fff;padding:10px 16px;border-radius:14px;width:100%;max-width:460px;box-shadow:0 3px 8px rgba(0,0,0,0.08)">
-      「わしの作った曲はどれかな？<br>右の📢ボタンで音を聴いてみよう！」
+    <h2>🎼 ボスバトル！</h2>
+    <div class="quiz-battle-header">
+      <div class="battle-avatar-box">
+        <img id="quizPlayerIcon" src="" alt="プレイヤー">
+        <span>あなた</span>
+      </div>
+      <div class="battle-vs">VS</div>
+      <div class="battle-avatar-box">
+        <img id="quizComposerIcon" src="" alt="作曲家">
+        <span id="quizComposerName">作曲家</span>
+      </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:460px;align-items:center" id="quizOptionsList"></div>
+    <div id="composerMessage" style="font-size:15px;text-align:center;background:#fff;padding:10px 16px;border-radius:14px;width:100%;max-width:480px;box-shadow:0 3px 8px rgba(0,0,0,0.08)">
+      「わしの作った曲はどれかな？ きいて当ててみたまえ！」
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:480px;align-items:center" id="quizOptionsList"></div>
+    <button id="backToMapFromQuizBtn" style="font-size:15px;padding:8px 20px;background:#939393;margin-top:4px;">← マップへもどる</button>
   </div>
 
   <!-- 既存キャラクター選択画面（登録済がある場合） -->
@@ -71,7 +106,7 @@
       <img id="selectedIconPreview" src="" style="width:50px;height:50px;object-fit:contain">
       <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;padding:10px;font-size:18px;border-radius:10px;border:2px solid #ccc">
     </div>
-    <button id="createAccBtn" style="padding:12px 40px;font-size:20px;">クエスト出発！ 🚀</button>
+    <button id="createAccBtn" style="padding:12px 40px;font-size:20px;">ストーリー出発！ 🚀</button>
   </div>
 
   <!-- 設定画面 -->
