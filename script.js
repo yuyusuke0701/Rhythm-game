@@ -137,101 +137,76 @@ function click(t, accent){
 }
 function metro(base){ for(var i=0;i<TOTAL;i++) click(base + i*BEAT, i%4===0); }
 
-/* ===== クエスト（すごろく）画面のロジック ===== */
-function updateQuestUI(){
-  if(!currentAccount) return;
-  document.getElementById("tokenCount").textContent = currentAccount.tokens || 0;
-  document.getElementById("currentPos").textContent = currentAccount.position || 1;
-  
-  const container = document.getElementById("boardContainer");
-  container.innerHTML = "";
-  for(let i = 1; i <= 10; i++){
-    const cell = document.createElement("div");
-    cell.className = "map-cell" + (i === currentAccount.position ? " current" : "") + (i === 10 ? " boss" : "");
-    if(i === 10){
-      cell.innerHTML = "👑<br>ボス";
-    } else if(i === currentAccount.position){
-      cell.innerHTML = `<img src="${currentAccount.icon}"><br>${i}`;
-    } else {
-      cell.innerHTML = "マス<br>" + i;
-    }
-    container.appendChild(cell);
-  }
-}
+/* ==========================================
+   曲リスト・作曲家データ（PDF準拠）
+   ========================================== */
+const MUSIC_DATABASE = [
+  { composer: "エリック・サティ", title: "ジムノペディ", file: "Sound/Music/サティジムノペディ.mp3" },
+  { composer: "エリック・サティ", title: "ジュ・トゥ・ヴ", file: "Sound/Music/サティ_ジュ・トゥ・ヴ.mp3" },
+  { composer: "ロベルト・シューマン", title: "クライスレリアーナ", file: "Sound/Music/シューマン_クライスレリアーナ.mp3" },
+  { composer: "ロベルト・シューマン", title: "トロイメライ(『子供の情景』より)", file: "Sound/Music/シューマン_トロイメライ.mp3" },
+  { composer: "ロベルト・シューマン", title: "見知らぬ国と人々(『子供の情景』より)", file: "Sound/Music/シューマン_見知らぬ国.mp3" },
+  { composer: "ロベルト・シューマン", title: "謝肉祭「前口上」", file: "Sound/Music/シューマン_謝肉祭「前口上」.mp3" },
+  { composer: "フレデリック・ショパン", title: "ノクターン第2番 変ホ長調 作品9-2", file: "Sound/Music/ショパン_ノクターン.mp3" },
+  { composer: "フレデリック・ショパン", title: "前奏曲(プレリュード集 作品28より)", file: "Sound/Music/ショパン_プレリュード.mp3" },
+  { composer: "フレデリック・ショパン", title: "幻想即興曲 嬰ハ短調", file: "Sound/Music/ショパン_幻想即興曲.mp3" },
+  { composer: "フレデリック・ショパン", title: "別れの曲", file: "Sound/Music/ショパン_別れの曲.mp3" },
+  { composer: "アントニン・ドヴォルザーク", title: "ユーモレスク 第7番", file: "Sound/Music/ドヴォルザーグ_ユーモレスク.mp3" },
+  { composer: "クロード・ドビュッシー", title: "アラベスク第1番", file: "Sound/Music/ドビュッシー_アラベスク.mp3" },
+  { composer: "クロード・ドビュッシー", title: "月の光(『ベルガマスク組曲』より)", file: "Sound/Music/ドビュッシー_月の光.mp3" },
+  { composer: "テクラ・バダチェフスカ", title: "乙女の祈り", file: "Sound/Music/バダジェフスカ_乙女の祈り.mp3" },
+  { composer: "ヨハネス・ブラームス", title: "ハンガリー舞曲 第5番", file: "Sound/Music/ブラームス_ハンガリー舞曲.mp3" },
+  { composer: "ルートヴィヒ・ヴァン・ベートーヴェン", title: "エリーゼのために", file: "Sound/Music/ベートーヴェン_エリーゼのために.mp3" },
+  { composer: "ルートヴィヒ・ヴァン・ベートーヴェン", title: "ピアノソナタ第8番 ハ短調 作品13「悲愴」", file: "Sound/Music/ベートーヴェン_悲愴ソナタ.mp3" },
+  { composer: "モデスト・ムソルグスキー", title: "組曲「展覧会の絵」", file: "Sound/Music/ムソルグスキー_展覧会の絵.mp3" },
+  { composer: "フェリックス・メンデルスゾーン", title: "ロンド・カプリチオーソ 作品14", file: "Sound/Music/メンデルスゾーン ロンド_カプリチオーソ.mp3" },
+  { composer: "フェリックス・メンデルスゾーン", title: "春の歌(『無言歌集』より)", file: "Sound/Music/メンデルスゾーン_春の歌.mp3" },
+  { composer: "ヴォルフガング・アマデウス・モーツァルト", title: "きらきら星変奏曲", file: "Sound/Music/モーツァルトきらきら_星変奏曲.mp3" },
+  { composer: "ヴォルフガング・アマデウス・モーツァルト", title: "幻想曲 ニ短調 K.397", file: "Sound/Music/モーツァルト_幻想曲二短調.mp3" },
+  { composer: "フランツ・リスト", title: "コンソレーション (慰め) 第3番", file: "Sound/Music/リスト_コンソレーション (慰め).mp3" },
+  { composer: "フランツ・リスト", title: "超絶技巧練習曲 第4番「マゼッパ」", file: "Sound/Music/リスト_マゼッパ.mp3" },
+  { composer: "フランツ・リスト", title: "ラ・カンパネラ", file: "Sound/Music/リストラ・カンパネラ.mp3" },
+  { composer: "フランツ・リスト", title: "リゴレット・パラフレーズ", file: "Sound/Music/リスト_リゴレット・パラフレーズ.mp3" },
+  { composer: "フランツ・リスト", title: "愛の夢", file: "Sound/Music/リスト_愛の夢.mp3" },
+  { composer: "フランツ・シューベルト", title: "幻想曲「さすらい人幻想曲」", file: "Sound/Music/シューベルト_幻想曲「さすらい人幻想曲」.mp3" },
+  { composer: "フランツ・シューベルト", title: "楽興の時", file: "Sound/Music/シューベルト_楽興の時.mp3" }
+];
 
-document.getElementById("rollDiceBtn").addEventListener("click", function(){
-  ensureAudio();
-  if(!currentAccount) return;
-  
-  let adv = Math.floor(Math.random() * 3) + 1;
-  currentAccount.position = (currentAccount.position || 1) + adv;
-  
-  if(currentAccount.position >= 10){
-    currentAccount.position = 10;
-    updateQuestUI();
-    setTimeout(() => {
-      alert("ボス（ベートーベン）のエリアに到着した！ クイズに挑戦だ！");
-      startBossQuiz();
-    }, 300);
-  } else {
-    let earned = Math.floor(Math.random() * 2) + 1;
-    currentAccount.tokens = (currentAccount.tokens || 0) + earned;
-    saveAccountsToLocal();
-    updateQuestUI();
-    alert("サイコロの目は " + adv + "！\nマスを進んだ！ 音のカケラを " + earned + "個ゲット！🪙");
+// 作曲家リスト（章データ）の自動構築
+const COMPOSERS_MAP = {};
+MUSIC_DATABASE.forEach(item => {
+  if(!COMPOSERS_MAP[item.composer]){
+    COMPOSERS_MAP[item.composer] = {
+      name: item.composer,
+      icon: getComposerIcon(item.composer),
+      tracks: []
+    };
   }
+  COMPOSERS_MAP[item.composer].tracks.push(item);
 });
+const STORY_CHAPTERS = Object.keys(COMPOSERS_MAP).map((compName, idx) => ({
+  id: idx,
+  title: `第${idx+1}章 〜${compName}〜`,
+  composer: compName,
+  icon: COMPOSERS_MAP[compName].icon,
+  tracks: COMPOSERS_MAP[compName].tracks
+}));
 
-/* ===== ボスバトル（曲あて3択クイズ） ===== */
-function startBossQuiz(){
-  show("sQuiz");
-  const listEl = document.getElementById("quizOptionsList");
-  
-  const options = [
-    { text: "交響曲第5番「運命」", isCorrect: true },
-    { text: "トルコ行進曲 (モーツァルト)", isCorrect: false },
-    { text: "アイネ・クライネ・ナハトミュジーク", isCorrect: false }
-  ];
-  options.sort(() => Math.random() - 0.5);
-
-  listEl.innerHTML = options.map((opt, idx) => `
-    <div class="quiz-option" data-correct="${opt.isCorrect}">
-      <span>${idx+1}. ${opt.text}</span>
-      <button class="play-audio-btn" style="font-size:14px;padding:6px 12px;--k1:#ffbc98;--k2:#fb9468;--k3:#df744a">📢 聴く</button>
-    </div>
-  `).join("");
-
-  listEl.querySelectorAll(".quiz-option").forEach(card => {
-    const playBtn = card.querySelector(".play-audio-btn");
-    const isCorr = card.getAttribute("data-correct") === "true";
-
-    playBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      playTestBuzzer(isCorr ? 'correct' : 'wrong');
-    });
-
-    card.addEventListener("click", () => {
-      if(isCorr){
-        playTestBuzzer('correct');
-        alert("正解！ ベートーベンの曲だ！\n音のカケラ🪙 +10個ゲット！");
-        currentAccount.tokens = (currentAccount.tokens || 0) + 10;
-        currentAccount.position = 1;
-        saveAccountsToLocal();
-        show("sQuest");
-        updateQuestUI();
-      } else {
-        playTestBuzzer('wrong');
-        alert("ざんねん！ハズレ！ もう一度聴いて挑戦しよう！");
-      }
-    });
-  });
+function getComposerIcon(name){
+  // 簡易的にアイコン画像を割り当て（キャラクターアイコン等を活用）
+  return "icon/char01.png";
 }
+
+/* ===== ストーリーモードの状態変数 ===== */
+var currentChapterIdx = 0;
+var currentStoryStage = 0; // 0: ステージ1, 1: ステージ2, 2: ステージ3, 3: ボスバトル
+var previewAudioObj = null;
 
 /* ===== 共通の時間軸 ===== */
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
 function setBpm(v){ BPM = v; BEAT = 60 / v; }
 
-/* ===== 問題データ ===== */
+/* ===== 問題データ（練習用・ステージ進行用） ===== */
 var levels = [
   {name:"4分音符まで", pats:[
     [["q","q","q","q"],["q","q","q","q"]],
@@ -432,6 +407,7 @@ function addMarker(t){
 /* ===== 状態 ===== */
 var $ = function(id){ return document.getElementById(id); };
 var notes = [], curPat = null, currentLevelIndex = 0, currentProblemIndex = 0, demoOn = true;
+var isStoryPlay = false; // ストーリーモードからのプレイ判定
 var state = "idle", useDemo = true, canTap = false;
 var t0, countStart, recStart, recEnd;
 var taps = [], active = {}, rafId = 0, busyUntil = 0;
@@ -450,6 +426,22 @@ function setHighScore(lvlIdx, probIdx, score){
   let key = `${lvlIdx}_${probIdx}`;
   if(score > (currentAccount.highScores[key] || 0)){
     currentAccount.highScores[key] = score;
+    saveAccountsToLocal();
+  }
+}
+
+// ストーリーモード用ステージスコア管理 (chapterIdx_stageNum: score)
+function getStoryScore(chapterIdx, stageNum){
+  if(!currentAccount) return 0;
+  if(!currentAccount.storyScores) currentAccount.storyScores = {};
+  return currentAccount.storyScores[`${chapterIdx}_${stageNum}`] || 0;
+}
+function setStoryScore(chapterIdx, stageNum, score){
+  if(!currentAccount) return;
+  if(!currentAccount.storyScores) currentAccount.storyScores = {};
+  let key = `${chapterIdx}_${stageNum}`;
+  if(score > (currentAccount.storyScores[key] || 0)){
+    currentAccount.storyScores[key] = score;
     saveAccountsToLocal();
   }
 }
@@ -495,7 +487,7 @@ function enterFromStart(){
 }
 
 function show(id){
-  ["sStart","sTop","sSet","sPrac","sGame","sQuest","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
+  ["sStart","sTop","sSet","sPrac","sGame","sStoryChapters","sStoryMap","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
   
   // 戻るボタンの表示・文言制御
   var backBtn = $("back");
@@ -503,7 +495,10 @@ function show(id){
     backBtn.style.display = "none";
   } else if(id === "sGame"){
     backBtn.style.display = "block";
-    backBtn.textContent = "← 問題リストへもどる";
+    backBtn.textContent = isStoryPlay ? "← ステージマップへもどる" : "← 問題リストへもどる";
+  } else if(id === "sStoryMap" || id === "sQuiz"){
+    backBtn.style.display = "block";
+    backBtn.textContent = "← 章のせんたくへ";
   } else {
     backBtn.style.display = "block";
     backBtn.textContent = "← トップへ";
@@ -514,22 +509,29 @@ function show(id){
 }
 
 function goBackAction(){
+  if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
   if($("sGame").classList.contains("on")){
-    // 練習モードのゲーム画面から戻る場合は問題一覧（sPrac）へ戻す
     state = "idle"; canTap = false;
     cancelAnimationFrame(rafId);
     clearTimeout(calTimer);
     $("popup").style.display = "none";
     releaseAll();
     stopAll();
-    renderProblemList(selectedPracLevel);
-    show("sPrac");
+    if(isStoryPlay){
+      openStoryMap(currentChapterIdx);
+    } else {
+      renderProblemList(selectedPracLevel);
+      show("sPrac");
+    }
+  } else if($("sStoryMap").classList.contains("on") || $("sQuiz").classList.contains("on")){
+    openStoryChapters();
   } else {
     goTop();
   }
 }
 
 function goTop(){
+  if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
   state = "idle"; canTap = false;
   cancelAnimationFrame(rafId);
   clearTimeout(calTimer);
@@ -741,7 +743,12 @@ function judge(){
   });
 
   var score = Math.max(0, Math.round(hitU / U * 100 - extra * PENALTY));
-  setHighScore(currentLevelIndex, currentProblemIndex, score);
+  
+  if(isStoryPlay){
+    setStoryScore(currentChapterIdx, currentStoryStage, score);
+  } else {
+    setHighScore(currentLevelIndex, currentProblemIndex, score);
+  }
 
   var lines = [];
   if(missU > 0) lines.push("たりない音があったよ（未タップ数：" + missU + "）");
@@ -760,12 +767,25 @@ function judge(){
   }
   if(!lines.length) lines.push("ぜんぶばっちり！");
 
+  if(isStoryPlay && score >= 80){
+    lines.push("🎉 80点以上クリア！ お見事！");
+  } else if(isStoryPlay){
+    lines.push("💡 80点以上でクリア！ もう一度挑戦しよう！");
+  }
+
   var col = score >= 80 ? "#2eaa5a" : (score >= 50 ? "#e08a00" : "#e2574c");
   $("bigScore").innerHTML = '<span class="lbl">得点</span> <span class="num" style="color:' + col + '">' + score + '</span><span class="lbl">点</span>';
   $("detail").innerHTML = lines.map(function(l){ return "<div>◇" + l + "</div>"; }).join("");
   $("msg").style.display = "none";
   $("result").style.display = "block";
   
+  // ストーリーモードの場合、「つぎのもんだい」ボタンを「マップへもどる」に変更または兼用
+  if(isStoryPlay){
+    $("nextBtn").textContent = "ステージマップへ";
+  } else {
+    $("nextBtn").textContent = "つぎのもんだい";
+  }
+
   drawScore(notes, res, taps.filter(function(t, j){
     if(used[j]) return false;
     var inRest = false;
@@ -868,14 +888,18 @@ $("mineBtn").addEventListener("click", function(){
 $("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
 $("nextBtn").addEventListener("click", function(){
   if(!guard()) return;
-  var lvlObj = levels[currentLevelIndex];
-  var nextProbIdx = currentProblemIndex + 1;
-  if(nextProbIdx >= lvlObj.pats.length){
-    nextProbIdx = 0;
-    currentLevelIndex = (currentLevelIndex + 1) % levels.length;
+  if(isStoryPlay){
+    openStoryMap(currentChapterIdx);
+  } else {
+    var lvlObj = levels[currentLevelIndex];
+    var nextProbIdx = currentProblemIndex + 1;
+    if(nextProbIdx >= lvlObj.pats.length){
+      nextProbIdx = 0;
+      currentLevelIndex = (currentLevelIndex + 1) % levels.length;
+    }
+    loadSelectedProblem(currentLevelIndex, nextProbIdx);
+    startRun();
   }
-  loadSelectedProblem(currentLevelIndex, nextProbIdx);
-  startRun();
 });
 $("sStart").addEventListener("click", enterFromStart);
 $("sStart").addEventListener("keydown", function(e){
@@ -892,7 +916,9 @@ $("popBtn").addEventListener("click", function(){
   startRun();
 });
 
-/* クエストモードクリック時の挙動 */
+/* ==========================================
+   ストーリーモード画面遷移・章・マップロジック
+   ========================================== */
 $("goQuest").addEventListener("click", function(){
   ensureAudio();
   loadAccounts();
@@ -901,30 +927,183 @@ $("goQuest").addEventListener("click", function(){
     renderIconGrid();
     show("sNewCharIcon");
   } else {
-    renderAccountList();
-    show("sCharSelect");
+    openStoryChapters();
   }
 });
 
-$("goPrac").addEventListener("click", function(){
-  ensureAudio();
-  renderProblemList(0);
-  show("sPrac");
-});
-$("goSet").addEventListener("click", function(){ show("sSet"); });
-$("profileBtn").addEventListener("click", function(){
-  loadAccounts();
-  if(accounts.length === 0){
-    selectedNewIcon = ICONS[0];
-    renderIconGrid();
-    show("sNewCharIcon");
+function openStoryChapters(){
+  show("sStoryChapters");
+  const listEl = $("chapterList");
+  listEl.innerHTML = STORY_CHAPTERS.map(ch => {
+    // 3ステージクリア済みか判定
+    let s0 = getStoryScore(ch.id, 0);
+    let s1 = getStoryScore(ch.id, 1);
+    let s2 = getStoryScore(ch.id, 2);
+    let clearedCount = (s0 >= 80 ? 1 : 0) + (s1 >= 80 ? 1 : 0) + (s2 >= 80 ? 1 : 0);
+    return `
+      <div class="chapter-card" data-chapter="${ch.id}">
+        <div style="display:flex;align-items:center;gap:12px">
+          <img src="${ch.icon}" style="width:40px;height:40px;object-fit:contain">
+          <div>
+            <div style="font-weight:bold;font-size:16px">${ch.title}</div>
+            <div style="font-size:12px;color:#666">クリア状況: ステージ ${clearedCount}/3</div>
+          </div>
+        </div>
+        <button style="font-size:14px;padding:6px 14px;">挑戦する →</button>
+      </div>
+    `;
+  }).join("");
+
+  listEl.querySelectorAll(".chapter-card").forEach(card => {
+    card.addEventListener("click", function(){
+      const chId = parseInt(this.getAttribute("data-chapter"), 10);
+      openStoryMap(chId);
+    });
+  });
+}
+
+function openStoryMap(chapterIdx){
+  currentChapterIdx = chapterIdx;
+  const chapter = STORY_CHAPTERS[chapterIdx];
+  
+  // 1. 暗い背景から浮かび上がる演出（ポップアップやアラート、またはタイトル切替アニメーション）
+  show("sStoryMap");
+  $("mapChapterTitle").textContent = chapter.title;
+
+  // スコア表示
+  let s0 = getStoryScore(chapterIdx, 0);
+  let s1 = getStoryScore(chapterIdx, 1);
+  let s2 = getStoryScore(chapterIdx, 2);
+  $("starScore0").textContent = s0;
+  $("starScore1").textContent = s1;
+  $("starScore2").textContent = s2;
+
+  // ボス挑戦ボタンの有効化判定（ステージ1〜3がすべて80点以上か確認）
+  const bossNode = $("bossNode");
+  const bossIcon = $("mapBossIcon");
+  bossIcon.src = chapter.icon;
+
+  let allCleared = (s0 >= 80 && s1 >= 80 && s2 >= 80);
+  if(allCleared){
+    bossNode.classList.remove("locked");
+    bossNode.classList.add("unlocked");
+    $("bossNodeLabel").textContent = "✨ ボス挑戦！";
   } else {
-    renderAccountList();
-    show("sCharSelect");
+    bossNode.classList.remove("unlocked");
+    bossNode.classList.add("locked");
+    $("bossNodeLabel").textContent = "🔒 3ステージクリアで開放";
   }
+
+  // ステージ1〜3のノードクリックイベント
+  document.querySelectorAll(".map-stage-node").forEach(node => {
+    node.onclick = function(){
+      let stageNum = parseInt(this.getAttribute("data-stage"), 10);
+      startStoryStage(chapterIdx, stageNum);
+    };
+  });
+
+  // ボスノードクリックイベント
+  bossNode.onclick = function(){
+    if(!allCleared){
+      alert("ステージ1〜3をすべて80点以上でクリアすると挑戦できるよ！");
+      return;
+    }
+    startComposerQuiz(chapterIdx);
+  };
+}
+
+$("backToChaptersBtn").addEventListener("click", function(){
+  openStoryChapters();
 });
 
-/* ===== 練習モードの問題一覧・カテゴリ構築 ===== */
+// ストーリーモードでのリズムゲームステージ開始
+function startStoryStage(chapterIdx, stageNum){
+  isStoryPlay = true;
+  currentStoryStage = stageNum;
+  
+  // ステージが進むにつれて難易度が上がる (0: 4分音符, 1: 8分音符, 2: 16分音符)
+  let patPool = levels[stageNum].pats;
+  let randomPat = patPool[Math.floor(Math.random() * patPool.length)];
+  curPat = randomPat;
+  notes = buildNotes(curPat);
+
+  show("sGame");
+  startCal();
+}
+
+/* ==========================================
+   作曲家ボスバトル（曲あてクイズ）ロジック
+   ========================================== */
+function startComposerQuiz(chapterIdx){
+  const chapter = STORY_CHAPTERS[chapterIdx];
+  show("sQuiz");
+
+  $("quizPlayerIcon").src = currentAccount ? currentAccount.icon : ICONS[0];
+  $("quizComposerIcon").src = chapter.icon;
+  $("quizComposerName").textContent = chapter.composer;
+  $("composerMessage").textContent = `「わし（${chapter.composer}）の曲を当ててみたまえ！」`;
+
+  const listEl = $("quizOptionsList");
+  
+  // 正解の曲をこの作曲家のリストからランダム選出
+  let correctTrack = chapter.tracks[Math.floor(Math.random() * chapter.tracks.length)];
+  
+  // 不正解の選択肢を全体のMUSIC_DATABASEから2つ選出
+  let wrongTracks = MUSIC_DATABASE.filter(t => t.file !== correctTrack.file);
+  wrongTracks.sort(() => Math.random() - 0.5);
+  let options = [
+    { track: correctTrack, isCorrect: true },
+    { track: wrongTracks[0], isCorrect: false },
+    { track: wrongTracks[1], isCorrect: false }
+  ];
+  options.sort(() => Math.random() - 0.5);
+
+  listEl.innerHTML = options.map((opt, idx) => `
+    <div class="quiz-option" data-correct="${opt.isCorrect}" data-file="${opt.track.file}">
+      <div style="flex:1"><b>${idx+1}.</b> ${opt.track.title}</div>
+      <button class="preview-audio-btn" style="font-size:13px;padding:6px 12px;--k1:#ffbc98;--k2:#fb9468;--k3:#df744a">📢 きいてみる</button>
+    </div>
+  `).join("");
+
+  listEl.querySelectorAll(".quiz-option").forEach(card => {
+    const previewBtn = card.querySelector(".preview-audio-btn");
+    const filePath = card.getAttribute("data-file");
+    const isCorr = card.getAttribute("data-correct") === "true";
+
+    previewBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if(previewAudioObj){ previewAudioObj.pause(); }
+      previewAudioObj = new Audio(filePath);
+      previewAudioObj.volume = 0.6;
+      previewAudioObj.play().catch(err => {
+        alert("音源ファイルが見つかりませんでした。\n※実際の音声ファイルを配置すると再生されます。");
+      });
+    });
+
+    card.addEventListener("click", () => {
+      if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
+      
+      if(isCorr){
+        playTestBuzzer('correct');
+        alert(`正解！さすがよく聴いているね！\n${chapter.composer}の章をクリアした！✨`);
+        // 次の章へ進むかマップに戻る
+        openStoryChapters();
+      } else {
+        playTestBuzzer('wrong');
+        alert(`不正解…！\n${chapter.composer}「もっとよく聴いてから出直してきなさい！」`);
+        openStoryMap(chapterIdx);
+      }
+    });
+  });
+}
+
+$("backToMapFromQuizBtn").addEventListener("click", function(){
+  if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
+  openStoryMap(currentChapterIdx);
+});
+
+
+/* ===== 練習モード問題一覧・カテゴリ構築 ===== */
 var selectedPracLevel = 0;
 function renderProblemList(lvlIdx){
   selectedPracLevel = lvlIdx;
@@ -959,6 +1138,7 @@ function renderProblemList(lvlIdx){
     playBtn.addEventListener("click", function(e){
       e.stopPropagation();
       ensureAudio();
+      isStoryPlay = false;
       loadSelectedProblem(lvlIdx, idx);
       show("sGame");
       startCal();
@@ -967,6 +1147,7 @@ function renderProblemList(lvlIdx){
 
     card.addEventListener("click", function(){
       ensureAudio();
+      isStoryPlay = false;
       loadSelectedProblem(lvlIdx, idx);
       show("sGame");
       startCal();
@@ -992,6 +1173,7 @@ function makePracticeLevelToggles(){
   });
 }
 makePracticeLevelToggles();
+
 
 /* ===== キャラクター・アイコン選択画面の構築 ===== */
 function renderIconGrid(){
@@ -1019,7 +1201,6 @@ function renderAccountList(){
         <span style="font-weight:bold">${acc.nickname}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:13px;color:#777">🪙${acc.tokens || 0}</span>
         <button class="del-acc-btn" data-id="${acc.id}" style="font-size:12px;padding:6px 10px;background:#e2574c;box-shadow:0 2px 0 #b33;border-radius:8px">削除</button>
       </div>
     </div>
@@ -1031,8 +1212,7 @@ function renderAccountList(){
       const id = this.getAttribute("data-id");
       currentAccount = accounts.find(a => a.id === id);
       saveAccountsToLocal();
-      show("sQuest");
-      updateQuestUI();
+      openStoryChapters();
     });
   });
 
@@ -1075,7 +1255,8 @@ $("createAccBtn").addEventListener("click", function(){
     nickname: nick,
     tokens: 0,
     position: 1,
-    highScores: {}
+    highScores: {},
+    storyScores: {}
   };
   accounts.push(newAcc);
   currentAccount = newAcc;
@@ -1086,8 +1267,7 @@ $("createAccBtn").addEventListener("click", function(){
     }).then(()=>{});
   }
   
-  show("sQuest");
-  updateQuestUI();
+  openStoryChapters();
 });
 
 /* トグル・設定関連 */
@@ -1134,6 +1314,24 @@ $("ofsS").addEventListener("input", function(){ timingOfs = parseInt(this.value,
   $("bpmSel").appendChild(o);
 });
 $("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10)); saveSet(); });
+
+$("goPrac").addEventListener("click", function(){
+  ensureAudio();
+  renderProblemList(0);
+  show("sPrac");
+});
+$("goSet").addEventListener("click", function(){ show("sSet"); });
+$("profileBtn").addEventListener("click", function(){
+  loadAccounts();
+  if(accounts.length === 0){
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    renderAccountList();
+    show("sCharSelect");
+  }
+});
 
 loadAccounts();
 })();
