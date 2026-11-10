@@ -1,5 +1,44 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:#fde7a0}
+
+/* ===== 縦型専用レイアウト（横向きやPCでも縦長比率を維持して中央配置） ===== */
+html,body{
+  margin:0;
+  height:100%;
+  font-family:"Hiragino Maru Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;
+  color:#333;
+  overflow:hidden;
+  background:#1a1a1a; /* 横向き・余白時のレターボックス背景（ダークカラー） */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+#app{
+  width:100%;
+  height:100%;
+  max-width:480px; /* スマホの最大想定幅 */
+  max-height:100dvh;
+  background:linear-gradient(180deg,var(--bg1),var(--bg2));
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:8px 12px;
+  position:relative;
+  box-shadow:0 0 25px rgba(0,0,0,0.5);
+  overflow:hidden;
+}
+
+/* 画面が横向き（landscape）になった場合でも縦型の比率をキープ */
+@media (orientation: landscape) {
+  #app {
+    height: 100vh;
+    width: calc(100vh * (9 / 16));
+    max-width: none;
+    border-left: 2px solid rgba(0,0,0,0.2);
+    border-right: 2px solid rgba(0,0,0,0.2);
+  }
+}
+
 /* ===== テーマ(設定で切替): 1=パステル 2=トロピカル 3=オーシャン ===== */
 body[data-theme="1"]{--bg1:#fffaf4;--bg2:#fdeee6;--title:#e8897c;
   --q1:#c9cbe4;--q2:#adb0d2;--q3:#8f93ba;--p1:#aee0d0;--p2:#8fcfba;--p3:#6fb39d;--s1:#d6b0e4;--s2:#bd92d2;--s3:#9d72b6;
@@ -10,9 +49,7 @@ body[data-theme="2"]{--bg1:#fff8d2;--bg2:#fde7a0;--title:#e2592f;
 body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
   --q1:#a6bacd;--q2:#869db5;--q3:#6a8299;--p1:#5ec3b8;--p2:#35a499;--p3:#1f8379;--s1:#5559b8;--s2:#3a3f98;--s3:#2a2e78;
   --a1:#56c5ae;--a2:#33a68f;--a3:#218870;--t1:#86abff;--t2:#5a82f0;--t3:#3d63d0;--tglow:rgba(90,130,255,.6)}
-html,body{margin:0;height:100%;font-family:"Hiragino Maru Gothic ProN","Yu Gothic","Noto Sans JP",sans-serif;color:#333;overflow:hidden}
-body{background:linear-gradient(180deg,var(--bg1),var(--bg2))}
-#app{height:100dvh;display:flex;flex-direction:column;align-items:center;padding:8px 12px}
+
 .screen{overflow-y:auto;display:none;width:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0}
 .screen.on{display:flex}
 .pad{padding-top:30px}
@@ -198,7 +235,6 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
   #sNewCharIcon { padding-top: 48px; gap: 6px; }
   #sNewCharIcon .icon-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 }
-
 
 /* ===== START画面 ===== */
 #sStart {
