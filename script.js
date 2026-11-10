@@ -47,6 +47,7 @@ function updateProfileBtnUI(){
     if(topDisplayName) topDisplayName.textContent = currentAccount.nickname;
   } else {
     btn.textContent = "👤 プレーヤー";
+    // 未選択時は初期デフォルトアイコンを表示する
     if(topDisplayImg) topDisplayImg.src = ICONS[0];
     if(topDisplayName) topDisplayName.textContent = "キャラをえらぶ";
   }
@@ -1192,7 +1193,6 @@ function renderAccountList(){
   });
 }
 
-// 下部中央のプレイヤーアイコン部分をクリックした時の動作（プロフィール画面を開く）
 $("topPlayerDisplay").addEventListener("click", function(){
   loadAccounts();
   if(accounts.length === 0){
