@@ -1,21 +1,16 @@
 (function(){
 "use strict";
 
-/* ==========================================
-   Supabase 設定 (アカウント同期用)
-   ========================================== */
 const SUPABASE_URL = 'https://cluingpqudgjhyjhegiy.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsdWluZ3BxdWRnamh5amhlZ2l5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEzNzg0NTMsImV4cCI6MjEwNjk1NDQ1M30.6TyaxqKQwP-0c3sUbtlbUVX3XgQLg1nABvPoB26a9co';
 const supabaseClient = (SUPABASE_URL.includes('xxxx') || !window.supabase) ? null : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* ===== 40種類のアイコンリスト生成 (icon/char01.png 〜 char40.png) ===== */
 const ICONS = [];
 for(let i = 1; i <= 40; i++){
   let numStr = String(i).padStart(2, '0');
   ICONS.push(`icon/char${numStr}.png`);
 }
 
-/* ===== ユーザー・アカウント管理 ===== */
 let accounts = []; 
 let currentAccount = null; 
 let selectedNewIcon = ICONS[0];
@@ -43,10 +38,17 @@ function saveAccountsToLocal(){
 
 function updateProfileBtnUI(){
   const btn = document.getElementById("profileBtn");
+  const topDisplayImg = document.getElementById("topPlayerIconImg");
+  const topDisplayName = document.getElementById("topPlayerNameTxt");
+
   if(currentAccount){
     btn.innerHTML = `<img src="${currentAccount.icon}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${currentAccount.nickname}`;
+    if(topDisplayImg) topDisplayImg.src = currentAccount.icon;
+    if(topDisplayName) topDisplayName.textContent = currentAccount.nickname;
   } else {
     btn.textContent = "👤 プレーヤー";
+    if(topDisplayImg) topDisplayImg.src = ICONS[0];
+    if(topDisplayName) topDisplayName.textContent = "キャラをえらぶ";
   }
 }
 
@@ -62,7 +64,6 @@ async function syncAccountToSupabase(acc){
   } catch(e){ console.error(e); }
 }
 
-/* ===== Web Audio (テスト音・メトロノーム等) ===== */
 var ctx = null, master = null, bus = null, pw = null, perfOffset = null;
 function newBus(){ bus = ctx.createGain(); bus.connect(master); }
 function refreshOffset(){ perfOffset = ctx.currentTime - performance.now()/1000; }   
@@ -137,9 +138,6 @@ function click(t, accent){
 }
 function metro(base){ for(var i=0;i<TOTAL;i++) click(base + i*BEAT, i%4===0); }
 
-/* ==========================================
-   曲リスト・作曲家データ（PDF準拠）
-   ========================================== */
 const MUSIC_DATABASE = [
   { composer: "エリック・サティ", title: "ジムノペディ", file: "Sound/Music/サティジムノペディ.mp3" },
   { composer: "エリック・サティ", title: "ジュ・トゥ・ヴ", file: "Sound/Music/サティ_ジュ・トゥ・ヴ.mp3" },
@@ -1194,6 +1192,19 @@ function renderAccountList(){
   });
 }
 
+// 下部中央のプレイヤーアイコン部分をクリックした時の動作（プロフィール画面を開く）
+$("topPlayerDisplay").addEventListener("click", function(){
+  loadAccounts();
+  if(accounts.length === 0){
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    renderAccountList();
+    show("sCharSelect");
+  }
+});
+
 $("toNewCharBtn").addEventListener("click", function(){
   selectedNewIcon = ICONS[0];
   renderIconGrid();
@@ -1295,4 +1306,5 @@ $("profileBtn").addEventListener("click", function(){
 });
 
 loadAccounts();
+})();
 })();
