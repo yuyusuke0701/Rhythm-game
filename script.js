@@ -172,7 +172,6 @@ const MUSIC_DATABASE = [
   { composer: "フランツ・シューベルト", title: "楽興の時", file: "Sound/Music/シューベルト_楽興の時.mp3" }
 ];
 
-// 作曲家リスト（章データ）の自動構築
 const COMPOSERS_MAP = {};
 MUSIC_DATABASE.forEach(item => {
   if(!COMPOSERS_MAP[item.composer]){
@@ -193,20 +192,16 @@ const STORY_CHAPTERS = Object.keys(COMPOSERS_MAP).map((compName, idx) => ({
 }));
 
 function getComposerIcon(name){
-  // 簡易的にアイコン画像を割り当て（キャラクターアイコン等を活用）
   return "icon/char01.png";
 }
 
-/* ===== ストーリーモードの状態変数 ===== */
 var currentChapterIdx = 0;
-var currentStoryStage = 0; // 0: ステージ1, 1: ステージ2, 2: ステージ3, 3: ボスバトル
+var currentStoryStage = 0; 
 var previewAudioObj = null;
 
-/* ===== 共通の時間軸 ===== */
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
 function setBpm(v){ BPM = v; BEAT = 60 / v; }
 
-/* ===== 問題データ（練習用・ステージ進行用） ===== */
 var levels = [
   {name:"4分音符まで", pats:[
     [["q","q","q","q"],["q","q","q","q"]],
@@ -303,7 +298,6 @@ function buildNotes(bars){
   return notes;
 }
 
-/* ===== 楽譜描画 ===== */
 var X0 = 10, X1 = 790, TS_W = 56, PAD = 14;
 var PB = (X1 - X0 - TS_W - 30) / TOTAL;
 function xb(b){ return X0 + TS_W + b * PB; }
@@ -404,17 +398,15 @@ function addMarker(t){
   return m;
 }
 
-/* ===== 状態 ===== */
 var $ = function(id){ return document.getElementById(id); };
 var notes = [], curPat = null, currentLevelIndex = 0, currentProblemIndex = 0, demoOn = true;
-var isStoryPlay = false; // ストーリーモードからのプレイ判定
+var isStoryPlay = false; 
 var state = "idle", useDemo = true, canTap = false;
 var t0, countStart, recStart, recEnd;
 var taps = [], active = {}, rafId = 0, busyUntil = 0;
 var calLag = 0, cal = null, calTimer = 0;
 var COUNT_WORDS = ["いち","に","さん","はい！"];
 
-/* ===== ハイスコア管理 ===== */
 function getHighScore(lvlIdx, probIdx){
   if(!currentAccount) return 0;
   if(!currentAccount.highScores) currentAccount.highScores = {};
@@ -430,7 +422,6 @@ function setHighScore(lvlIdx, probIdx, score){
   }
 }
 
-// ストーリーモード用ステージスコア管理 (chapterIdx_stageNum: score)
 function getStoryScore(chapterIdx, stageNum){
   if(!currentAccount) return 0;
   if(!currentAccount.storyScores) currentAccount.storyScores = {};
@@ -446,7 +437,6 @@ function setStoryScore(chapterIdx, stageNum, score){
   }
 }
 
-/* ===== START画面・トップ画面BGM ===== */
 var topBgm = new Audio("Sound/BGM/ちょっと優雅なひとときを.mp3");
 topBgm.loop = true;
 topBgm.preload = "auto";
@@ -489,7 +479,6 @@ function enterFromStart(){
 function show(id){
   ["sStart","sTop","sSet","sPrac","sGame","sStoryChapters","sStoryMap","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
   
-  // 戻るボタンの表示・文言制御
   var backBtn = $("back");
   if(id === "sTop" || id === "sStart"){
     backBtn.style.display = "none";
@@ -609,7 +598,6 @@ function finish(){
   if($("judgeOpt").checked) judge();
 }
 
-/* ===== タイミング調整 ===== */
 function startCal(){
   ensureAudio();
   clearTimeout(calTimer); cancelAnimationFrame(rafId);
@@ -666,7 +654,6 @@ function finishCal(){
   }, 700);
 }
 
-/* ===== 正答率判定 ===== */
 function judge(){
   var has16 = notes.some(function(n){ return n.type==="x" || n.type==="d"; });
   var tolBase = (has16 ? 0.18 : 0.3) * BEAT, tolLong = 0.4 * BEAT;
@@ -779,7 +766,6 @@ function judge(){
   $("msg").style.display = "none";
   $("result").style.display = "block";
   
-  // ストーリーモードの場合、「つぎのもんだい」ボタンを「マップへもどる」に変更または兼用
   if(isStoryPlay){
     $("nextBtn").textContent = "ステージマップへ";
   } else {
@@ -796,7 +782,6 @@ function judge(){
   }), taps);
 }
 
-/* ===== TAP処理 ===== */
 var tapBtn = $("tap");
 var STAR_COLORS = ["#ffd84a","#ffffff","#ff9ec5","#8fd3ff","#ffb04a"];
 function tapFx(e){
@@ -872,7 +857,6 @@ tapBtn.addEventListener("pointercancel", release);
 tapBtn.addEventListener("lostpointercapture", release);
 tapBtn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
 
-/* ===== ボタン・画面遷移 ===== */
 function guard(){ var n = performance.now(); if(n < busyUntil) return false; busyUntil = n + 300; return true; }
 $("demoBtn").addEventListener("click", function(){
   if(!guard()) return; ensureAudio(); stopAll();
@@ -916,9 +900,6 @@ $("popBtn").addEventListener("click", function(){
   startRun();
 });
 
-/* ==========================================
-   ストーリーモード画面遷移・章・マップロジック
-   ========================================== */
 $("goQuest").addEventListener("click", function(){
   ensureAudio();
   loadAccounts();
@@ -935,7 +916,6 @@ function openStoryChapters(){
   show("sStoryChapters");
   const listEl = $("chapterList");
   listEl.innerHTML = STORY_CHAPTERS.map(ch => {
-    // 3ステージクリア済みか判定
     let s0 = getStoryScore(ch.id, 0);
     let s1 = getStoryScore(ch.id, 1);
     let s2 = getStoryScore(ch.id, 2);
@@ -966,11 +946,9 @@ function openStoryMap(chapterIdx){
   currentChapterIdx = chapterIdx;
   const chapter = STORY_CHAPTERS[chapterIdx];
   
-  // 1. 暗い背景から浮かび上がる演出（ポップアップやアラート、またはタイトル切替アニメーション）
   show("sStoryMap");
   $("mapChapterTitle").textContent = chapter.title;
 
-  // スコア表示
   let s0 = getStoryScore(chapterIdx, 0);
   let s1 = getStoryScore(chapterIdx, 1);
   let s2 = getStoryScore(chapterIdx, 2);
@@ -978,7 +956,6 @@ function openStoryMap(chapterIdx){
   $("starScore1").textContent = s1;
   $("starScore2").textContent = s2;
 
-  // ボス挑戦ボタンの有効化判定（ステージ1〜3がすべて80点以上か確認）
   const bossNode = $("bossNode");
   const bossIcon = $("mapBossIcon");
   bossIcon.src = chapter.icon;
@@ -994,7 +971,6 @@ function openStoryMap(chapterIdx){
     $("bossNodeLabel").textContent = "🔒 3ステージクリアで開放";
   }
 
-  // ステージ1〜3のノードクリックイベント
   document.querySelectorAll(".map-stage-node").forEach(node => {
     node.onclick = function(){
       let stageNum = parseInt(this.getAttribute("data-stage"), 10);
@@ -1002,7 +978,6 @@ function openStoryMap(chapterIdx){
     };
   });
 
-  // ボスノードクリックイベント
   bossNode.onclick = function(){
     if(!allCleared){
       alert("ステージ1〜3をすべて80点以上でクリアすると挑戦できるよ！");
@@ -1016,12 +991,10 @@ $("backToChaptersBtn").addEventListener("click", function(){
   openStoryChapters();
 });
 
-// ストーリーモードでのリズムゲームステージ開始
 function startStoryStage(chapterIdx, stageNum){
   isStoryPlay = true;
   currentStoryStage = stageNum;
   
-  // ステージが進むにつれて難易度が上がる (0: 4分音符, 1: 8分音符, 2: 16分音符)
   let patPool = levels[stageNum].pats;
   let randomPat = patPool[Math.floor(Math.random() * patPool.length)];
   curPat = randomPat;
@@ -1031,9 +1004,6 @@ function startStoryStage(chapterIdx, stageNum){
   startCal();
 }
 
-/* ==========================================
-   作曲家ボスバトル（曲あてクイズ）ロジック
-   ========================================== */
 function startComposerQuiz(chapterIdx){
   const chapter = STORY_CHAPTERS[chapterIdx];
   show("sQuiz");
@@ -1045,10 +1015,7 @@ function startComposerQuiz(chapterIdx){
 
   const listEl = $("quizOptionsList");
   
-  // 正解の曲をこの作曲家のリストからランダム選出
   let correctTrack = chapter.tracks[Math.floor(Math.random() * chapter.tracks.length)];
-  
-  // 不正解の選択肢を全体のMUSIC_DATABASEから2つ選出
   let wrongTracks = MUSIC_DATABASE.filter(t => t.file !== correctTrack.file);
   wrongTracks.sort(() => Math.random() - 0.5);
   let options = [
@@ -1086,7 +1053,6 @@ function startComposerQuiz(chapterIdx){
       if(isCorr){
         playTestBuzzer('correct');
         alert(`正解！さすがよく聴いているね！\n${chapter.composer}の章をクリアした！✨`);
-        // 次の章へ進むかマップに戻る
         openStoryChapters();
       } else {
         playTestBuzzer('wrong');
@@ -1102,8 +1068,6 @@ $("backToMapFromQuizBtn").addEventListener("click", function(){
   openStoryMap(currentChapterIdx);
 });
 
-
-/* ===== 練習モード問題一覧・カテゴリ構築 ===== */
 var selectedPracLevel = 0;
 function renderProblemList(lvlIdx){
   selectedPracLevel = lvlIdx;
@@ -1174,8 +1138,6 @@ function makePracticeLevelToggles(){
 }
 makePracticeLevelToggles();
 
-
-/* ===== キャラクター・アイコン選択画面の構築 ===== */
 function renderIconGrid(){
   const grid = $("iconGrid");
   grid.innerHTML = ICONS.map(iconPath => `
@@ -1270,7 +1232,6 @@ $("createAccBtn").addEventListener("click", function(){
   openStoryChapters();
 });
 
-/* トグル・設定関連 */
 function makeToggle(boxId, labels, init, onPick){
   var box = $(boxId), btns = [];
   if(!box) return;
