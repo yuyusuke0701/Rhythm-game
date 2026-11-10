@@ -11,7 +11,7 @@
 </head>
 <body data-theme="2">
 <button id="back" style="display:none">← トップへ</button>
-<button id="profileBtn">👤 プレーヤー</button>
+<button id="profileBtn" style="display:none">👤 プレーヤー</button>
 
 <div id="popup" style="display:none"><div class="card"><div class="pt" id="popTitle">練習モード<br>スタート！</div><div class="ps" id="popSub"></div><button id="popBtn">スタート</button></div></div>
 <div id="app">
@@ -27,6 +27,11 @@
     <button class="big" id="goQuest">1. ストーリーモード</button>
     <button class="big" id="goPrac">2. 練習モード</button>
     <button class="big" id="goSet">3. 設定</button>
+    <!-- 下部中央のプレイヤーアイコン表示エリア（ご指定の赤枠部分） -->
+    <div id="topPlayerDisplay" class="top-player-display">
+      <img id="topPlayerIconImg" src="" alt="プレイヤーアイコン">
+      <span id="topPlayerNameTxt">ゲスト</span>
+    </div>
   </div>
 
   <!-- 章（作曲家）選択画面 -->
@@ -39,12 +44,10 @@
   <div class="screen pad" id="sStoryMap" style="gap:10px">
     <h2 id="mapChapterTitle">第1章 〜ベートーヴェン〜</h2>
     <div class="story-map-container">
-      <!-- 中央上：作曲家アイコンとボス挑戦ボタン -->
       <div id="bossNode" class="map-boss-node locked">
         <img id="mapBossIcon" src="" alt="作曲家">
         <span id="bossNodeLabel">🔒 ボスに挑戦</span>
       </div>
-      <!-- ステージ1〜3の星ノード -->
       <div class="map-stages-row">
         <div class="map-stage-node" data-stage="0">
           <div class="stage-star-badge">⭐ <span id="starScore0">0</span>点</div>
@@ -84,7 +87,7 @@
     <button id="backToMapFromQuizBtn" style="font-size:15px;padding:8px 20px;background:#939393;margin-top:4px;">← マップへもどる</button>
   </div>
 
-  <!-- 既存キャラクター選択画面（登録済がある場合） -->
+  <!-- 既存キャラクター選択画面 -->
   <div class="screen pad" id="sCharSelect" style="gap:10px">
     <h2>プレイヤーをえらんでね</h2>
     <div id="accountList" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:420px;align-items:center"></div>
@@ -119,7 +122,7 @@
     <div class="setrow"><div class="nm">テーマ</div><div class="ctl" id="themeTg" style="justify-content:center"></div></div>
     <div class="setrow"><div class="nm">メトロノーム音量</div><div class="ctl"><button class="st" id="volMm">−</button><input type="range" id="volM" min="0" max="100" step="1" value="50"><button class="st" id="volMp">＋</button><span class="vv"><span id="volMv">50</span></span></div></div>
     <div class="setrow"><div class="nm">ピアノ音量</div><div class="ctl"><button class="st" id="volTm">−</button><input type="range" id="volT" min="0" max="100" step="1" value="50"><button class="st" id="volTp">＋</button><span class="vv"><span id="volTv">50</span></span></div></div>
-    <div class="setrow"><div class="nm">タイミング補正</div><div class="ctl"><button class="st" id="ofsM">−</button><input type="range" id="ofsS" min="-100" max="200" step="1" value="0"><button class="st" id="ofsP">＋</button><span class="vv"><span id="ofsV">0</span>ms</span></div></div>
+    <div class="setrow"><div class="nm">タイミング補正</div><div class="ctl"><button class="st" id="ofsM">−</button><input type="range" id="ofsS" min="-100" max="200" step="1" value="0"><button class="st" id="ofsP">＋</button><span class="vv"><span id="volV">0</span>ms</span></div></div>
     <div class="row">
       <button class="tg on" id="testM">メトロノーム音テスト</button>
       <button class="tg on" id="testT">ピアノ音テスト</button>
