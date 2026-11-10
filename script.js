@@ -1307,4 +1307,3 @@ $("profileBtn").addEventListener("click", function(){
 
 loadAccounts();
 })();
-})();
