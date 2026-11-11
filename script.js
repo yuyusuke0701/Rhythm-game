@@ -41,16 +41,17 @@ function updateProfileBtnUI(){
   const topDisplayImg = document.getElementById("topPlayerIconImg");
   const topDisplayName = document.getElementById("topPlayerNameTxt");
 
+  let iconSrc = ICONS[0];
+  let nameTxt = "ゲスト";
+
   if(currentAccount){
-    btn.innerHTML = `<img src="${currentAccount.icon}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${currentAccount.nickname}`;
-    if(topDisplayImg) topDisplayImg.src = currentAccount.icon;
-    if(topDisplayName) topDisplayName.textContent = currentAccount.nickname;
-  } else {
-    btn.textContent = "👤 プレーヤー";
-    // 未選択時は初期デフォルトアイコンを表示する
-    if(topDisplayImg) topDisplayImg.src = ICONS[0];
-    if(topDisplayName) topDisplayName.textContent = "キャラをえらぶ";
+    iconSrc = currentAccount.icon || ICONS[0];
+    nameTxt = currentAccount.nickname || "ゲスト";
   }
+
+  if(btn) btn.innerHTML = `<img src="${iconSrc}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${nameTxt}`;
+  if(topDisplayImg) topDisplayImg.src = iconSrc;
+  if(topDisplayName) topDisplayName.textContent = nameTxt;
 }
 
 async function syncAccountToSupabase(acc){
@@ -1305,5 +1306,10 @@ $("profileBtn").addEventListener("click", function(){
   }
 });
 
-loadAccounts();
+// 初期化時にアカウントとUI表示を確定
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", loadAccounts);
+} else {
+  loadAccounts();
+}
 })();
