@@ -19,12 +19,12 @@ html,body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:16px 16px;
+  padding:16px 12px;
   position:relative;
   overflow:hidden;
 }
 
-/* 画面が横向き（landscape）のときだけ、中央に縦型フレームを表示（横幅を約1.3倍に拡大） */
+/* 画面が横向き（landscape）のときだけ、中央に縦型フレームを表示（横幅を1.3倍） */
 @media (orientation: landscape) {
   html, body {
     background: #1a1a1a;
@@ -57,8 +57,8 @@ body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
 .screen.on{display:flex}
 .pad{padding-top:30px}
 
-h1{margin:0 0 10px 0;font-size:clamp(24px, 6.5vw, 36px);text-align:center;color:var(--title);text-shadow:0 2px 0 rgba(255,255,255,.85),0 5px 10px rgba(0,0,0,.14);line-height:1.3}
-h2{margin:0;font-size:clamp(18px,5vh,26px);color:#444;text-align:center}
+h1{margin:0 0 10px 0;font-size:clamp(26px, 7.5vw, 38px);text-align:center;color:var(--title);text-shadow:0 2px 0 rgba(255,255,255,.85),0 5px 10px rgba(0,0,0,.14);line-height:1.3}
+h2{margin:0;font-size:clamp(20px,5.5vh,28px);color:#444;text-align:center}
 
 /* ===== ぷっくりボタン ===== */
 button{--k1:var(--a1);--k2:var(--a2);--k3:var(--a3);font-family:inherit;font-size:clamp(20px, 4.5vh, 28px);padding:12px 26px;border:0;border-radius:18px;color:#fff;font-weight:800;touch-action:manipulation;
@@ -68,38 +68,48 @@ button{--k1:var(--a1);--k2:var(--a2);--k3:var(--a3);font-family:inherit;font-siz
 button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--k3),0 3px 6px rgba(0,0,0,.2),inset 0 2px 0 rgba(255,255,255,.4)}
 button:disabled{opacity:.88;filter:saturate(.8)}
 
-/* メニューボタン（スマホでも小さくなりすぎないよう下限を22pxに底上げ） */
-.big{width:min(94%, 420px);font-size:clamp(22px, 5.2vw, 28px);border-radius:24px;padding:18px 24px;margin:6px 0}
+/* メニューボタン（画面横幅の92%に合わせ、大きく太く可視化） */
+.big{
+  width: 92vw;
+  max-width: 520px;
+  font-size: clamp(24px, 6vw, 32px);
+  border-radius: 24px;
+  padding: 18px 24px;
+  margin: 8px 0;
+  min-height: 72px;
+}
 #goQuest{--k1:var(--p1);--k2:var(--p2);--k3:var(--p3)}
 #goPrac{--k1:var(--t1);--k2:var(--t2);--k3:var(--t3)}
 #goSet,#demoBtn,#mineBtn{--k1:var(--s1);--k2:var(--s2);--k3:var(--s3)}
 
-/* 下部中央のプレイヤーアイコン表示エリア */
+/* 下部中央のプレイヤーアイコン表示エリア（画面幅85%で大きく表示） */
 .top-player-display{
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
   background:#fff;
-  padding:12px 24px;
-  border-radius:20px;
-  box-shadow:0 6px 16px rgba(0,0,0,0.1);
-  border:3px solid var(--p2);
+  width: 85vw;
+  max-width: 460px;
+  padding:16px 20px;
+  border-radius:24px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.12);
+  border:4px solid var(--p2);
   cursor:pointer;
-  margin-top:10px;
+  margin-top:16px;
   transition:transform 0.1s;
 }
-.top-player-display:hover{transform:scale(1.03)}
+.top-player-display:hover{transform:scale(1.02)}
 .top-player-display img{
-  width:72px;
-  height:72px;
+  width:88px;
+  height:88px;
   object-fit:contain;
-  margin-bottom:4px;
+  margin-bottom:6px;
 }
 #topPlayerNameTxt{
-  font-size:16px;
+  font-size:20px;
   font-weight:bold;
-  color:#444;
+  color:#333;
 }
 
 #back{--k1:var(--s1);--k2:var(--s2);--k3:var(--s3);position:fixed;left:12px;top:10px;z-index:5;font-size:13px;padding:6px 12px;border-radius:12px;box-shadow:0 3px 0 var(--k3),0 5px 8px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.4);white-space:nowrap}
@@ -192,7 +202,7 @@ button.st{font-size:24px;padding:2px 0;width:46px;border-radius:12px;user-select
 
 #sTop {
   justify-content: center;
-  gap: clamp(10px, 2.5vh, 20px);
+  gap: clamp(12px, 3vh, 24px);
   padding: 30px 12px 20px;
   width: 100%;
 }
