@@ -2,18 +2,25 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>がくふがよめる！リズムマスターへの道</title>
 <!-- Supabase SDKの読み込み -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- 外部CSSの読み込み -->
 <link rel="stylesheet" href="style.css">
 </head>
-<body data-theme="2">
-<button id="back" style="display:none">← トップへ</button>
+<body data-theme="2" class="portrait-locked">
+<button id="back" style="display:none">← もどる</button>
 <button id="profileBtn" style="display:none">👤 プレーヤー</button>
 
-<div id="popup" style="display:none"><div class="card"><div class="pt" id="popTitle">練習モード<br>スタート！</div><div class="ps" id="popSub"></div><button id="popBtn">スタート</button></div></div>
+<div id="popup" style="display:none">
+  <div class="card">
+    <div class="pt" id="popTitle">スタート！</div>
+    <div class="ps" id="popSub"></div>
+    <button id="popBtn">スタート</button>
+  </div>
+</div>
+
 <div id="app">
 
   <!-- START画面 -->
@@ -21,16 +28,44 @@
     <div class="start-prompt">がめんをタッチしてスタート♪</div>
   </div>
 
-  <!-- TOP画面 -->
+  <!-- TOP画面（スマホ縦専用・オシャレ＆押しやすいメニュー） -->
   <div class="screen" id="sTop">
-    <h1>がくふがよめる！<br>リズムマスターへの道</h1>
-    <button class="big" id="goQuest">1. ストーリーモード</button>
-    <button class="big" id="goPrac">2. 練習モード</button>
-    <button class="big" id="goSet">3. 設定</button>
-    <!-- 下部中央のプレイヤーアイコン表示エリア（初期画像を設定） -->
-    <div id="topPlayerDisplay" class="top-player-display">
+    <div class="title-box">
+      <div class="title-badge">♪ RHYTHM &amp; SHEET MUSIC ♪</div>
+      <h1>
+        <span class="title-sub">がくふがよめる！</span>
+        <span class="title-main">リズムマスターへの道</span>
+      </h1>
+    </div>
+
+    <!-- プレイヤー表示・選択エリア（未選択時は選択を促す表示に変化） -->
+    <div id="topPlayerDisplay" class="top-player-display unselected" role="button" tabindex="0">
       <img id="topPlayerIconImg" src="icon/char01.png" alt="プレイヤーアイコン">
-      <span id="topPlayerNameTxt">ゲスト</span>
+      <div class="top-player-info">
+        <div id="topPlayerStatusBadge" class="player-badge">タップしてえらぼう！</div>
+        <div id="topPlayerNameTxt">プレイヤー未選択</div>
+        <div id="topPlayerHintTxt" class="player-hint">※ストーリー・練習にはプレイヤー選択が必要です</div>
+      </div>
+      <div class="top-player-arrow">›</div>
+    </div>
+
+    <!-- メインメニュー -->
+    <div class="menu-stack">
+      <button class="big menu-btn" id="goQuest">
+        <span class="menu-num">01</span>
+        <span class="menu-label">ストーリーモード</span>
+        <span class="menu-sub">作曲家とリズム＆曲あて冒険</span>
+      </button>
+      <button class="big menu-btn" id="goPrac">
+        <span class="menu-num">02</span>
+        <span class="menu-label">練習モード</span>
+        <span class="menu-sub">音符・休符をじっくりトレーニング</span>
+      </button>
+      <button class="big menu-btn" id="goSet">
+        <span class="menu-num">03</span>
+        <span class="menu-label">設定</span>
+        <span class="menu-sub">テンポ・音量・カラーテーマ</span>
+      </button>
     </div>
   </div>
 
@@ -105,11 +140,11 @@
   <!-- 新規キャラクター：ニックネーム入力画面 -->
   <div class="screen pad" id="sNewCharName" style="gap:14px">
     <h2>ニックネームを決めてね！</h2>
-    <div style="display:flex;align-items:center;gap:12px;background:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,0.08)">
+    <div style="display:flex;align-items:center;gap:12px;background:#fff;padding:14px 20px;border-radius:16px;box-shadow:0 3px 10px rgba(0,0,0,0.08);width:92vw;max-width:420px">
       <img id="selectedIconPreview" src="icon/char01.png" style="width:50px;height:50px;object-fit:contain">
-      <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;padding:10px;font-size:18px;border-radius:10px;border:2px solid #ccc">
+      <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;min-width:0;padding:10px;font-size:18px;border-radius:10px;border:2px solid #ccc">
     </div>
-    <button id="createAccBtn" style="padding:12px 40px;font-size:20px;">ストーリー出発！ 🚀</button>
+    <button id="createAccBtn" style="padding:12px 40px;font-size:20px;">プレイヤーをけってい！ ✨</button>
   </div>
 
   <!-- 設定画面 -->
@@ -130,14 +165,14 @@
   </div></div>
 
   <!-- 練習モード問題一覧画面 -->
-  <div class="screen pad" id="sPrac" style="gap:8px; max-width:800px; margin:0 auto;">
+  <div class="screen pad" id="sPrac" style="gap:8px">
     <h2>練習モード：もんだいを選んでね</h2>
     <div class="row" id="lvBtns" style="margin-bottom:4px;"></div>
-    <div class="opt" style="justify-content:space-between; width:100%; max-width:700px; padding:0 4px;">
+    <div class="opt" style="justify-content:space-between; width:92vw; max-width:520px; padding:0 4px;">
       <span>お手本設定</span>
       <div id="demoTg" style="display:flex; gap:8px;"></div>
     </div>
-    <div id="problemListContainer" style="width:100%; max-width:700px; max-height:48vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:4px;"></div>
+    <div id="problemListContainer" style="width:92vw; max-width:520px; max-height:48vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:4px;"></div>
   </div>
 
   <!-- ゲームプレイ画面 -->
