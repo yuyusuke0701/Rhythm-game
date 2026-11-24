@@ -992,6 +992,7 @@ if($("goQuest")){
 function openStoryChapters(){
   show("sStoryChapters");
   const listEl = $("chapterList");
+  listEl.scrollTop = 0;
   listEl.innerHTML = STORY_CHAPTERS.map(ch => {
     let s0 = getStoryScore(ch.id, 0);
     let s1 = getStoryScore(ch.id, 1);
@@ -999,14 +1000,12 @@ function openStoryChapters(){
     let clearedCount = (s0 >= 80 ? 1 : 0) + (s1 >= 80 ? 1 : 0) + (s2 >= 80 ? 1 : 0);
     return `
       <div class="chapter-card" data-chapter="${ch.id}">
-        <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">
-          <img src="${ch.icon}" alt="${ch.composer}" style="width:78px;height:78px;object-fit:contain;flex-shrink:0;border-radius:14px;background:#fffaf0;padding:4px">
-          <div style="min-width:0">
-            <div style="font-weight:bold;font-size:clamp(14px,3.8vw,17px);line-height:1.25">${ch.title}</div>
-            <div style="font-size:12px;color:#666;margin-top:4px">クリア状況: ステージ ${clearedCount}/3</div>
-          </div>
+        <img class="chapter-card-img" src="${ch.icon}" alt="${ch.composer}">
+        <div class="chapter-card-body">
+          <div class="chapter-card-title">${ch.title}</div>
+          <div class="chapter-card-sub">クリア: ${clearedCount} / 3 ステージ</div>
         </div>
-        <button style="font-size:14px;padding:8px 12px;flex-shrink:0;">挑戦 →</button>
+        <button class="chapter-card-btn">挑戦 →</button>
       </div>
     `;
   }).join("");
@@ -1041,11 +1040,11 @@ function openStoryMap(chapterIdx){
   if(allCleared){
     bossNode.classList.remove("locked");
     bossNode.classList.add("unlocked");
-    $("bossNodeLabel").textContent = "✨ ボス挑戦！";
+    $("bossNodeLabel").textContent = "✨ ボスバトルに挑戦する！";
   } else {
     bossNode.classList.remove("unlocked");
     bossNode.classList.add("locked");
-    $("bossNodeLabel").textContent = "🔒 3ステージクリアで開放";
+    $("bossNodeLabel").textContent = "🔒 3ステージクリアでボス開放";
   }
 
   document.querySelectorAll(".map-stage-node").forEach(node => {
@@ -1088,6 +1087,7 @@ function startComposerQuiz(chapterIdx){
   show("sQuiz");
 
   $("quizPlayerIcon").src = currentAccount ? currentAccount.icon : ICONS[0];
+  if($("quizPlayerName")) $("quizPlayerName").textContent = currentAccount ? currentAccount.nickname : "あなた";
   $("quizComposerIcon").src = chapter.icon;
   $("quizComposerName").textContent = chapter.composer;
   $("composerMessage").textContent = `「わし（${chapter.composer}）の曲を当ててみたまえ！」`;
@@ -1106,8 +1106,8 @@ function startComposerQuiz(chapterIdx){
 
   listEl.innerHTML = options.map((opt, idx) => `
     <div class="quiz-option" data-correct="${opt.isCorrect}" data-file="${opt.track.file}">
-      <div style="flex:1"><b>${idx+1}.</b> ${opt.track.title}</div>
-      <button class="preview-audio-btn" style="font-size:13px;padding:6px 12px;--k1:#ffbc98;--k2:#fb9468;--k3:#df744a">📢 きいてみる</button>
+      <div class="quiz-option-title"><b>${idx+1}.</b> ${opt.track.title}</div>
+      <button class="preview-audio-btn">📢 きく</button>
     </div>
   `).join("");
 
@@ -1154,6 +1154,7 @@ function renderProblemList(lvlIdx){
   selectedPracLevel = lvlIdx;
   var container = $("problemListContainer");
   if(!container) return;
+  container.scrollTop = 0;
   container.innerHTML = "";
   var pats = levels[lvlIdx].pats;
 
@@ -1162,25 +1163,19 @@ function renderProblemList(lvlIdx){
     var hiScore = getHighScore(lvlIdx, idx);
 
     var card = document.createElement("div");
-    card.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:#fff; padding:8px 12px; border-radius:14px; border:2px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.06); cursor:pointer; gap:10px; width:100%;";
+    card.className = "prac-problem-card";
 
-    var infoDiv = document.createElement("div");
-    infoDiv.style.cssText = "min-width:86px; font-weight:bold; font-size:15px; color:#444;";
-    infoDiv.innerHTML = `No.${idx + 1}<br><span style="font-size:12px; color:#e2592f;">最高: ${hiScore}点</span>`;
-    card.appendChild(infoDiv);
+    var topRow = document.createElement("div");
+    topRow.className = "prac-problem-top";
 
-    var svgWrap = document.createElement("div");
-    svgWrap.style.cssText = "flex:1; min-width:0; background:#fafafa; border-radius:8px; padding:2px; overflow:hidden;";
-    var miniSvg = document.createElementNS(NS, "svg");
-    miniSvg.setAttribute("viewBox", "0 0 800 172");
-    miniSvg.style.cssText = "width:100%; height:52px; display:block;";
-    drawScoreToSvg(miniSvg, notesTmp);
-    svgWrap.appendChild(miniSvg);
-    card.appendChild(svgWrap);
+    var titleWrap = document.createElement("div");
+    titleWrap.className = "prac-problem-title";
+    titleWrap.innerHTML = `<span>No.${idx + 1}</span><span class="prac-problem-score">最高: ${hiScore}点</span>`;
+    topRow.appendChild(titleWrap);
 
     var playBtn = document.createElement("button");
-    playBtn.textContent = "えらぶ";
-    playBtn.style.cssText = "font-size:14px; padding:8px 12px; border-radius:12px; flex-shrink:0;";
+    playBtn.className = "prac-select-btn";
+    playBtn.textContent = "えらぶ →";
     playBtn.addEventListener("click", function(e){
       e.stopPropagation();
       ensureAudio();
@@ -1189,7 +1184,16 @@ function renderProblemList(lvlIdx){
       show("sGame");
       startCal();
     });
-    card.appendChild(playBtn);
+    topRow.appendChild(playBtn);
+    card.appendChild(topRow);
+
+    var svgWrap = document.createElement("div");
+    svgWrap.className = "prac-problem-score-box";
+    var miniSvg = document.createElementNS(NS, "svg");
+    miniSvg.setAttribute("viewBox", "0 0 800 172");
+    drawScoreToSvg(miniSvg, notesTmp);
+    svgWrap.appendChild(miniSvg);
+    card.appendChild(svgWrap);
 
     card.addEventListener("click", function(){
       ensureAudio();
@@ -1243,7 +1247,7 @@ function renderAccountList(){
   list.innerHTML = accounts.map(acc => `
     <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}">
       <div style="display:flex;align-items:center;gap:12px;font-size:18px">
-        <img src="${acc.icon}" style="width:40px;height:40px;object-fit:contain">
+        <img src="${acc.icon}" style="width:48px;height:48px;object-fit:contain">
         <span style="font-weight:bold">${acc.nickname}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
