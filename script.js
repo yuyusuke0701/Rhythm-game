@@ -209,6 +209,27 @@ const MUSIC_DATABASE = [
   { composer: "フランツ・シューベルト", title: "楽興の時", file: "Sound/Music/シューベルト_楽興の時.mp3" }
 ];
 
+const COMPOSER_ICON_MAP = {
+  "エリック・サティ": "picture/01_サティ.png",
+  "ヴォルフガング・アマデウス・モーツァルト": "picture/02_モーツァルト.png",
+  "アントニン・ドヴォルザーク": "picture/03_ドヴォルザーク.png",
+  "ルートヴィヒ・ヴァン・ベートーヴェン": "picture/04_ベートーヴェン.png",
+  "モデスト・ムソルグスキー": "picture/05_ムソルグスキー.png",
+  "ロベルト・シューマン": "picture/06_シューマン.png",
+  "クロード・ドビュッシー": "picture/07_ドビュッシー.png",
+  "テクラ・バダチェフスカ": "picture/08_バダジェフスカ.png",
+  "フレデリック・ショパン": "picture/09_ショパン.png",
+  "フランツ・リスト": "picture/10_リスト.png",
+  "フランツ・シューベルト": "picture/11_シューベルト.png",
+  "フェリックス・メンデルスゾーン": "picture/12_メンデルスゾーン.png",
+  "ヨハネス・ブラームス": "picture/13_ブラームス.png"
+};
+
+function getComposerIcon(name){
+  const raw = COMPOSER_ICON_MAP[name] || "icon/char01.png";
+  return encodeURI(raw);
+}
+
 const COMPOSERS_MAP = {};
 MUSIC_DATABASE.forEach(item => {
   if(!COMPOSERS_MAP[item.composer]){
@@ -227,10 +248,6 @@ const STORY_CHAPTERS = Object.keys(COMPOSERS_MAP).map((compName, idx) => ({
   icon: COMPOSERS_MAP[compName].icon,
   tracks: COMPOSERS_MAP[compName].tracks
 }));
-
-function getComposerIcon(name){
-  return "icon/char01.png";
-}
 
 var currentChapterIdx = 0;
 var currentStoryStage = 0;
@@ -982,14 +999,14 @@ function openStoryChapters(){
     let clearedCount = (s0 >= 80 ? 1 : 0) + (s1 >= 80 ? 1 : 0) + (s2 >= 80 ? 1 : 0);
     return `
       <div class="chapter-card" data-chapter="${ch.id}">
-        <div style="display:flex;align-items:center;gap:12px">
-          <img src="${ch.icon}" style="width:40px;height:40px;object-fit:contain">
-          <div>
-            <div style="font-weight:bold;font-size:16px">${ch.title}</div>
-            <div style="font-size:12px;color:#666">クリア状況: ステージ ${clearedCount}/3</div>
+        <div style="display:flex;align-items:center;gap:12px;min-width:0;flex:1">
+          <img src="${ch.icon}" alt="${ch.composer}" style="width:78px;height:78px;object-fit:contain;flex-shrink:0;border-radius:14px;background:#fffaf0;padding:4px">
+          <div style="min-width:0">
+            <div style="font-weight:bold;font-size:clamp(14px,3.8vw,17px);line-height:1.25">${ch.title}</div>
+            <div style="font-size:12px;color:#666;margin-top:4px">クリア状況: ステージ ${clearedCount}/3</div>
           </div>
         </div>
-        <button style="font-size:14px;padding:6px 14px;">挑戦する →</button>
+        <button style="font-size:14px;padding:8px 12px;flex-shrink:0;">挑戦 →</button>
       </div>
     `;
   }).join("");
