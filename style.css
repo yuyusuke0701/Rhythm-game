@@ -24,7 +24,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2dvh 4vw;
+  padding: 1.5dvh 3.5vw;
   position: relative;
   overflow: hidden;
 }
@@ -44,7 +44,7 @@ html, body {
     box-shadow: 0 0 32px rgba(0,0,0,0.55);
     border-left: 3px solid rgba(255,255,255,0.14);
     border-right: 3px solid rgba(255,255,255,0.14);
-    padding: 2dvh 16px;
+    padding: 1.5dvh 14px;
   }
   #sStart {
     width: calc(100dvh * 0.5625) !important;
@@ -67,9 +67,61 @@ body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
   --q1:#a6bacd;--q2:#869db5;--q3:#6a8299;--p1:#5ec3b8;--p2:#35a499;--p3:#1f8379;--s1:#5559b8;--s2:#3a3f98;--s3:#2a2e78;
   --a1:#56c5ae;--a2:#33a68f;--a3:#218870;--t1:#86abff;--t2:#5a82f0;--t3:#3d63d0;--tglow:rgba(90,130,255,.6)}
 
-.screen{overflow-y:auto;display:none;width:100%;height:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:1.6dvh;min-height:0}
+.screen{overflow-y:auto;display:none;width:100%;height:100%;flex:1;flex-direction:column;align-items:center;justify-content:center;gap:1.5dvh;min-height:0}
 .screen.on{display:flex}
-.pad{padding-top:7dvh}
+.pad{padding-top:6.5dvh}
+
+/* ===== 上部固定ヘッダー＋スクロールリスト共通レイアウト ===== */
+.screen.fixed-header-screen{
+  overflow: hidden;
+  justify-content: flex-start;
+  padding-top: 0;
+  gap: 1dvh;
+}
+.sticky-screen-header{
+  width: 100%;
+  flex-shrink: 0;
+  padding-top: 1.2dvh;
+  padding-left: 26vw; /* 左上の戻るボタンと重ならない余白 */
+  padding-right: 1vw;
+  min-height: 6.2dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1dvh;
+}
+.sticky-screen-header h2{
+  width: 100%;
+  text-align: left;
+  font-size: clamp(19px, 5.2vw, 28px);
+}
+.sticky-screen-header.prac-header{
+  padding-left: 0;
+  padding-right: 0;
+}
+.sticky-screen-header.prac-header h2{
+  padding-left: 26vw;
+  text-align: left;
+}
+.prac-demo-row{
+  width: 100%;
+  justify-content: space-between;
+  background: rgba(255,255,255,.72);
+  padding: 0.8dvh 3vw;
+  border-radius: 14px;
+}
+.scroll-list-area{
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5dvh;
+  padding: 0.5dvh 0 2.5dvh;
+}
 
 /* ===== オシャレなタイトル ===== */
 .title-box{
@@ -128,7 +180,7 @@ button:disabled{opacity:.88;filter:saturate(.8)}
   justify-content: space-between !important;
   align-items: center !important;
   gap: 1.5dvh;
-  padding: 3dvh 2vw 3.5dvh;
+  padding: 3dvh 1vw 3.5dvh;
   width: 100%;
   height: 100%;
 }
@@ -279,10 +331,10 @@ button:disabled{opacity:.88;filter:saturate(.8)}
   --k3: var(--s3);
   position: fixed;
   left: 3vw;
-  top: 1.5dvh;
+  top: 1.4dvh;
   z-index: 30;
-  font-size: clamp(15px, 4vw, 22px);
-  padding: 1dvh 3.5vw;
+  font-size: clamp(15px, 3.9vw, 20px);
+  padding: 0.9dvh 3.2vw;
   border-radius: 14px;
   box-shadow: 0 4px 0 var(--k3), 0 6px 12px rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.5);
   white-space: nowrap;
@@ -292,10 +344,10 @@ button:disabled{opacity:.88;filter:saturate(.8)}
 #profileBtn{display:none !important;}
 
 #againBtn{--k1:#cfcfcf;--k2:#b3b3b3;--k3:#939393}
-.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center}
-.tg{--k1:#fff;--k2:#f3f3f3;--k3:#d9d9d9;color:#555;text-shadow:none;padding:1dvh 3.5vw;font-size:clamp(14px,3.8vw,20px);border-radius:14px;box-shadow:0 4px 0 var(--k3),0 7px 10px rgba(0,0,0,.12),inset 0 2px 0 rgba(255,255,255,.9)}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+.tg{--k1:#fff;--k2:#f3f3f3;--k3:#d9d9d9;color:#555;text-shadow:none;padding:0.9dvh 3.2vw;font-size:clamp(14px,3.7vw,19px);border-radius:14px;box-shadow:0 4px 0 var(--k3),0 7px 10px rgba(0,0,0,.12),inset 0 2px 0 rgba(255,255,255,.9)}
 .tg.on{--k1:var(--a1);--k2:var(--a2);--k3:var(--a3);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.22);box-shadow:0 4px 0 var(--k3),0 7px 10px rgba(0,0,0,.15),inset 0 2px 0 rgba(255,255,255,.5)}
-.opt{font-size:clamp(14px,3.6vw,20px);display:flex;align-items:center;gap:8px;color:#555}
+.opt{font-size:clamp(14px,3.6vw,19px);display:flex;align-items:center;gap:8px;color:#555}
 .opt input[type=checkbox]{width:24px;height:24px;accent-color:var(--a2)}
 select{font-size:clamp(15px,4vw,22px);padding:4px 8px;border-radius:10px;border:2px solid var(--a2);background:#fff}
 .panel{width:100%;background:rgba(255,255,255,.84);border-radius:22px;padding:2dvh 4vw;box-shadow:0 6px 18px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;gap:1.4dvh;margin:0 auto;}
@@ -306,27 +358,388 @@ select{font-size:clamp(15px,4vw,22px);padding:4px 8px;border-radius:10px;border:
 .setrow button.st{flex:0 0 auto}
 button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 
-.chapter-card{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:1.2dvh 3.5vw;border-radius:16px;width:100%;box-shadow:0 4px 12px rgba(0,0,0,.08);border:3px solid transparent;cursor:pointer;transition:transform 0.1s;margin:0 auto;}
-.chapter-card:hover{transform:translateY(-2px);border-color:var(--a2)}
+/* ===== 章選択カード（1画面に約4章見える大きさ＆イラスト特大） ===== */
+.chapter-card{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3vw;
+  background: #fff;
+  padding: 1.6dvh 3.5vw;
+  min-height: 19.5dvh;
+  border-radius: 22px;
+  width: 100%;
+  box-shadow: 0 5px 14px rgba(0,0,0,.1);
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  flex-shrink: 0;
+}
+.chapter-card:active{transform:scale(0.985)}
+.chapter-card:hover{border-color:var(--a2)}
+.chapter-card-img{
+  width: clamp(96px, 26vw, 136px);
+  height: clamp(96px, 26vw, 136px);
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 18px;
+  background: #fffaf0;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.chapter-card-body{
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8dvh;
+}
+.chapter-card-title{
+  font-weight: 900;
+  font-size: clamp(16px, 4.4vw, 22px);
+  line-height: 1.25;
+  color: #333;
+}
+.chapter-card-sub{
+  font-size: clamp(13px, 3.5vw, 17px);
+  font-weight: 800;
+  color: #d87b00;
+  background: #fff8e7;
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.chapter-card-btn{
+  font-size: clamp(15px, 4vw, 19px);
+  padding: 1.4dvh 3.5vw;
+  border-radius: 16px;
+  flex-shrink: 0;
+}
 
-/* ===== ストーリーマップ＆作曲家イラスト（大きく表示） ===== */
-.story-map-container{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2dvh;width:100%;background:#fff;padding:2dvh 3.5vw;border-radius:20px;box-shadow:0 6px 16px rgba(0,0,0,.08);margin:0 auto;}
-.map-boss-node{display:flex;flex-direction:column;align-items:center;gap:6px;padding:1.4dvh 5vw;border-radius:20px;cursor:pointer;border:3px solid #ff4444;background:#fff5f5;transition:transform 0.1s;width:100%;max-width:340px}
-.map-boss-node.locked{opacity:0.65;border-color:#ccc;background:#f5f5f5;cursor:not-allowed}
-.map-boss-node.unlocked:hover{transform:scale(1.03)}
-.map-boss-node img{width:clamp(108px,30vw,156px);height:clamp(108px,30vw,156px);object-fit:contain;border-radius:16px;background:#fff}
+/* ===== ステージ選択マップ画面（スマホ縦画面いっぱい活用） ===== */
+#sStoryMap{
+  justify-content: space-between;
+  padding-top: 6.8dvh;
+  padding-bottom: 2dvh;
+  gap: 1.2dvh;
+}
+#sStoryMap h2{
+  font-size: clamp(19px, 5vw, 26px);
+  width: 100%;
+}
+.story-map-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2dvh;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background: #fff;
+  padding: 2.2dvh 3.5vw;
+  border-radius: 24px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.1);
+}
+.map-boss-node{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1dvh;
+  padding: 1.8dvh 4vw;
+  border-radius: 22px;
+  cursor: pointer;
+  border: 3px solid #ff4444;
+  background: #fff5f5;
+  transition: transform 0.1s;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+.map-boss-node.locked{opacity:0.78;border-color:#ccc;background:#f7f7f7;cursor:not-allowed}
+.map-boss-node.unlocked:active{transform:scale(0.98)}
+.map-boss-node img{
+  width: clamp(148px, 42vw, 220px);
+  height: clamp(148px, 42vw, 220px);
+  max-height: 30dvh;
+  object-fit: contain;
+  border-radius: 20px;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+#bossNodeLabel{
+  font-size: clamp(15px, 4vw, 20px);
+  font-weight: 900;
+  color: #444;
+}
+.map-stages-section{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2dvh;
+  flex-shrink: 0;
+}
+.map-stages-guide{
+  text-align: center;
+  font-size: clamp(12px, 3.3vw, 16px);
+  font-weight: 800;
+  color: #666;
+}
+.map-stages-row{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5vw;
+  width: 100%;
+}
+.map-stage-node{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8dvh;
+  cursor: pointer;
+  background: #fffdf6;
+  border: 2px solid #ffe4b5;
+  border-radius: 18px;
+  padding: 1.2dvh 1.5vw;
+  transition: transform 0.1s;
+}
+.map-stage-node:active{transform:scale(0.96)}
+.stage-circle{
+  width: clamp(74px, 22vw, 108px);
+  height: clamp(74px, 22vw, 108px);
+  border-radius: 50%;
+  background: linear-gradient(135deg,var(--p1),var(--p2));
+  color: #fff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 12px rgba(0,0,0,.18);
+  border: 3px solid #fff;
+  font-size: clamp(15px, 4vw, 20px);
+  line-height: 1.2;
+  text-align: center;
+}
+.stage-star-badge{
+  font-size: clamp(13px, 3.5vw, 17px);
+  font-weight: 900;
+  color: #d87b00;
+  background: #fff8e7;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid #ffe0b2;
+}
+.sub-back-btn{
+  width: 100%;
+  font-size: clamp(16px, 4.2vw, 20px);
+  padding: 1.3dvh 4vw;
+  --k1:#a8a8a8;
+  --k2:#8e8e8e;
+  --k3:#6e6e6e;
+  flex-shrink: 0;
+}
 
-.map-stages-row{display:flex;gap:3vw;justify-content:center;width:100%}
-.map-stage-node{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:transform 0.1s}
-.map-stage-node:hover{transform:scale(1.05)}
-.stage-circle{width:clamp(68px,19vw,96px);height:clamp(68px,19vw,96px);border-radius:50%;background:linear-gradient(135deg,var(--p1),var(--p2));color:#fff;font-weight:bold;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.15);border:3px solid #fff;font-size:clamp(13px,3.5vw,18px);text-align:center}
-.stage-star-badge{font-size:clamp(12px,3.2vw,16px);font-weight:bold;color:#d87b00;background:#fff8e7;padding:2px 8px;border-radius:10px;border:1px solid #ffe0b2}
+/* ===== ボスバトル画面（VSなし・作曲家大きく上中段・選択下にプレイヤー） ===== */
+#sQuiz{
+  justify-content: space-between;
+  padding-top: 6.4dvh;
+  padding-bottom: 1.8dvh;
+  gap: 1.2dvh;
+}
+.quiz-boss-showcase{
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #fff;
+  border-radius: 22px;
+  padding: 1.5dvh 3.5vw;
+  box-shadow: 0 6px 16px rgba(0,0,0,.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1dvh;
+}
+.quiz-boss-showcase img{
+  width: clamp(140px, 40vw, 210px);
+  height: clamp(140px, 40vw, 210px);
+  max-height: 26dvh;
+  object-fit: contain;
+  border-radius: 18px;
+  background: #fffaf0;
+  padding: 4px;
+}
+.quiz-boss-speech{
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4dvh;
+}
+.quiz-boss-name{
+  font-size: clamp(16px, 4.3vw, 22px);
+  font-weight: 900;
+  color: var(--title);
+}
+.quiz-boss-msg{
+  font-size: clamp(14px, 3.7vw, 18px);
+  font-weight: 700;
+  color: #444;
+  background: #fff8ee;
+  padding: 0.9dvh 3vw;
+  border-radius: 14px;
+}
 
-/* ===== ボスバトル画面の作曲家イラスト（大きく表示） ===== */
-.quiz-battle-header{display:flex;align-items:center;justify-content:space-around;width:100%;background:#fff;padding:1.4dvh 3vw;border-radius:16px;box-shadow:0 4px 10px rgba(0,0,0,.08);margin:0 auto;}
-.battle-avatar-box{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:clamp(13px,3.5vw,17px);font-weight:bold;flex:1}
-.battle-avatar-box img{width:clamp(88px,24vw,132px);height:clamp(88px,24vw,132px);object-fit:contain;border-radius:14px;background:#fffaf0;padding:4px}
-.battle-vs{font-size:clamp(22px,6vw,32px);font-weight:800;color:var(--title);padding:0 6px}
+.quiz-options-stack{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1dvh;
+  flex-shrink: 0;
+}
+.quiz-option{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5vw;
+  background: #fff;
+  padding: 1.4dvh 3.5vw;
+  border-radius: 16px;
+  width: 100%;
+  min-height: 7.4dvh;
+  font-size: clamp(15px, 4.1vw, 20px);
+  font-weight: 900;
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  cursor: pointer;
+  border: 2px solid #e2e2e2;
+  transition: transform 0.08s, border-color 0.1s;
+}
+.quiz-option:active{transform:scale(0.985)}
+.quiz-option:hover{border-color:var(--a2)}
+.quiz-option-title{
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+.preview-audio-btn{
+  font-size: clamp(13px, 3.5vw, 17px) !important;
+  padding: 1dvh 3vw !important;
+  border-radius: 12px !important;
+  flex-shrink: 0;
+  --k1:#ffbc98;
+  --k2:#fb9468;
+  --k3:#df744a;
+}
+
+.quiz-player-footer{
+  width: 100%;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.92);
+  border: 2px solid var(--p2);
+  border-radius: 18px;
+  padding: 1dvh 3vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5vw;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.quiz-player-footer img{
+  width: clamp(50px, 13vw, 68px);
+  height: clamp(50px, 13vw, 68px);
+  object-fit: contain;
+  border-radius: 14px;
+  background: #fff9e6;
+  padding: 3px;
+  flex-shrink: 0;
+}
+.quiz-player-label{
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.quiz-player-tag{
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  color: var(--p3);
+}
+#quizPlayerName{
+  font-size: clamp(16px, 4.2vw, 20px);
+  font-weight: 900;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-gray-btn{
+  font-size: clamp(13px, 3.4vw, 16px) !important;
+  padding: 1dvh 3vw !important;
+  border-radius: 12px !important;
+  flex-shrink: 0;
+  --k1:#a8a8a8;
+  --k2:#8e8e8e;
+  --k3:#6e6e6e;
+}
+
+/* ===== 練習モード問題カード（横幅いっぱい・特大） ===== */
+.prac-problem-card{
+  display: flex;
+  flex-direction: column;
+  gap: 1dvh;
+  background: #fff;
+  padding: 1.5dvh 3.5vw;
+  border-radius: 20px;
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  cursor: pointer;
+  width: 100%;
+  flex-shrink: 0;
+}
+.prac-problem-card:active{transform:scale(0.99)}
+.prac-problem-top{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.prac-problem-title{
+  font-weight: 900;
+  font-size: clamp(17px, 4.6vw, 22px);
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.prac-problem-score{
+  font-size: clamp(13px, 3.5vw, 17px);
+  font-weight: 800;
+  color: #e2592f;
+  background: #fff4ec;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+.prac-problem-score-box{
+  width: 100%;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid #eee;
+}
+.prac-problem-score-box svg{
+  width: 100%;
+  height: clamp(64px, 11dvh, 96px);
+  display: block;
+}
+.prac-select-btn{
+  font-size: clamp(14px, 3.8vw, 18px) !important;
+  padding: 0.9dvh 4vw !important;
+  border-radius: 14px !important;
+}
 
 .icon-grid{display:grid;grid-template-columns:repeat(4, minmax(0, 1fr));gap:2.5vw;max-height:58dvh;overflow-y:auto;padding:2.5vw;width:100%;background:#fff;border-radius:16px;border:3px solid var(--a2);box-shadow:inset 0 2px 6px rgba(0,0,0,0.06);margin:0 auto;}
 .icon-item{width:100%;aspect-ratio:1;padding:4px;text-align:center;background:#fffaf0;border-radius:12px;cursor:pointer;border:3px solid transparent;display:flex;align-items:center;justify-content:center;transition:transform 0.1s}
@@ -337,9 +750,6 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
 .account-card{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:1.5dvh 4vw;border-radius:16px;width:100%;box-shadow:0 4px 12px rgba(0,0,0,.08);border:3px solid transparent;cursor:pointer;transition:transform 0.1s;margin:0 auto;}
 .account-card:hover{transform:translateY(-2px)}
 .account-card.active{border-color:var(--a2);background:#fffdf6}
-
-.quiz-option{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:1.5dvh 4vw;border-radius:14px;width:100%;font-size:clamp(15px,4vw,20px);font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.1);cursor:pointer;border:2px solid #ddd;margin:0 auto;}
-.quiz-option:hover{border-color:var(--a2)}
 
 #score{width:100%;background:#fff;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.1);margin:0 auto;}
 #score svg{width:100%;height:auto;max-height:32dvh;display:block}
