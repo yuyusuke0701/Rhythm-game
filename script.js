@@ -11,20 +11,24 @@ for(let i = 1; i <= 40; i++){
   ICONS.push(`icon/char${numStr}.png`);
 }
 
-let accounts = []; 
-let currentAccount = null; 
+let accounts = [];
+let currentAccount = null;
 let selectedNewIcon = ICONS[0];
+
+var $ = function(id){ return document.getElementById(id); };
 
 function loadAccounts(){
   try {
     accounts = JSON.parse(localStorage.getItem("rhythm_accounts") || "[]");
+    if(!Array.isArray(accounts)) accounts = [];
     let curId = localStorage.getItem("rhythm_current_id");
-    if(accounts.length > 0){
-      currentAccount = accounts.find(a => a.id === curId) || accounts[0];
+    if(accounts.length > 0 && curId){
+      currentAccount = accounts.find(a => a.id === curId) || null;
     } else {
       currentAccount = null;
     }
   } catch(e){
+    accounts = [];
     currentAccount = null;
   }
   updateProfileBtnUI();
@@ -32,26 +36,59 @@ function loadAccounts(){
 
 function saveAccountsToLocal(){
   localStorage.setItem("rhythm_accounts", JSON.stringify(accounts));
-  if(currentAccount) localStorage.setItem("rhythm_current_id", currentAccount.id);
+  if(currentAccount){
+    localStorage.setItem("rhythm_current_id", currentAccount.id);
+  } else {
+    localStorage.removeItem("rhythm_current_id");
+  }
   updateProfileBtnUI();
 }
 
 function updateProfileBtnUI(){
-  const btn = document.getElementById("profileBtn");
-  const topDisplayImg = document.getElementById("topPlayerIconImg");
-  const topDisplayName = document.getElementById("topPlayerNameTxt");
-
-  let iconSrc = ICONS[0];
-  let nameTxt = "ゲスト";
+  const btn = $("profileBtn");
+  const topCard = $("topPlayerDisplay");
+  const topDisplayImg = $("topPlayerIconImg");
+  const topDisplayName = $("topPlayerNameTxt");
+  const topBadge = $("topPlayerStatusBadge");
+  const topHint = $("topPlayerHintTxt");
 
   if(currentAccount){
-    iconSrc = currentAccount.icon || ICONS[0];
-    nameTxt = currentAccount.nickname || "ゲスト";
+    const iconSrc = currentAccount.icon || ICONS[0];
+    const nameTxt = currentAccount.nickname || "プレーヤー";
+    if(btn) btn.innerHTML = `<img src="${iconSrc}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${nameTxt}`;
+    if(topDisplayImg) topDisplayImg.src = iconSrc;
+    if(topDisplayName) topDisplayName.textContent = nameTxt;
+    if(topBadge) topBadge.textContent = "選択中のプレイヤー（タップで変更）";
+    if(topHint) topHint.textContent = "プレイヤーの切り替えや新規作成ができます";
+    if(topCard) topCard.classList.remove("unselected");
+  } else {
+    if(btn) btn.innerHTML = `👤 プレイヤー未選択`;
+    if(topDisplayImg) topDisplayImg.src = ICONS[0];
+    if(topDisplayName) topDisplayName.textContent = "プレイヤー未選択";
+    if(topBadge) topBadge.textContent = "！まだえらばれていません";
+    if(topHint) topHint.textContent = "ここをタップしてプレイヤーをえらんでね";
+    if(topCard) topCard.classList.add("unselected");
   }
+}
 
-  if(btn) btn.innerHTML = `<img src="${iconSrc}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${nameTxt}`;
-  if(topDisplayImg) topDisplayImg.src = iconSrc;
-  if(topDisplayName) topDisplayName.textContent = nameTxt;
+function openPlayerSelectScreen(){
+  loadAccounts();
+  if(accounts.length === 0){
+    selectedNewIcon = ICONS[0];
+    renderIconGrid();
+    show("sNewCharIcon");
+  } else {
+    renderAccountList();
+    show("sCharSelect");
+  }
+}
+
+function ensurePlayerSelected(modeLabel){
+  loadAccounts();
+  if(currentAccount) return true;
+  alert(`${modeLabel}を遊ぶには、先にプレイヤーをえらんでね！\nプレイヤー選択画面へすすみます。`);
+  openPlayerSelectScreen();
+  return false;
 }
 
 async function syncAccountToSupabase(acc){
@@ -68,7 +105,7 @@ async function syncAccountToSupabase(acc){
 
 var ctx = null, master = null, bus = null, pw = null, perfOffset = null;
 function newBus(){ bus = ctx.createGain(); bus.connect(master); }
-function refreshOffset(){ perfOffset = ctx.currentTime - performance.now()/1000; }   
+function refreshOffset(){ perfOffset = ctx.currentTime - performance.now()/1000; }
 function ensureAudio(){
   if(!ctx){
     var AC = window.AudioContext || window.webkitAudioContext;
@@ -78,7 +115,7 @@ function ensureAudio(){
     master.connect(ctx.destination);
     newBus();
     pw = ctx.createPeriodicWave(new Float32Array([0,0,0,0,0]), new Float32Array([0,1,0.55,0.3,0.15]));
-    var ko = ctx.createOscillator(), kg = ctx.createGain();   
+    var ko = ctx.createOscillator(), kg = ctx.createGain();
     kg.gain.value = 0.00002;
     ko.connect(kg); kg.connect(ctx.destination); ko.start();
   }
@@ -108,11 +145,11 @@ function playTestBuzzer(type){
   o.start(); o.stop(ctx.currentTime + (type==='correct'?0.6:0.4));
 }
 
-var volMetro = 50, volTap = 50, timingOfs = 0, themeIdx = 1;   
-var PIANO_F = 392, TAIL = 0.08, PV = 0.55;   
+var volMetro = 50, volTap = 50, timingOfs = 0, themeIdx = 1;
+var PIANO_F = 392, TAIL = 0.08, PV = 0.55;
 function voice(t){
   var o = ctx.createOscillator(), g = ctx.createGain();
-  o.setPeriodicWave(pw);              
+  o.setPeriodicWave(pw);
   o.frequency.value = PIANO_F;
   var peak = 0.45 * PV * (volTap/50);
   g.gain.setValueAtTime(0.0001, t);
@@ -196,7 +233,7 @@ function getComposerIcon(name){
 }
 
 var currentChapterIdx = 0;
-var currentStoryStage = 0; 
+var currentStoryStage = 0;
 var previewAudioObj = null;
 
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
@@ -273,7 +310,7 @@ var levels = [
     [["e","Re","x","d","x","d","d","x"],["q","q","e","x","x","x","x","x","x"]],
     [["e","Re","x","d","x","x","e","q"],["d","x","q","d","x","e~","e"]]]}
 ];
-var LEN = {q:1, e:0.5, x:0.25, s:1, d:0.75, h:2, D:3, w:4};   
+var LEN = {q:1, e:0.5, x:0.25, s:1, d:0.75, h:2, D:3, w:4};
 var SOUND_LEN = {q:0.9, e:0.45, x:0.22, s:0.15, d:0.68, h:1.9, D:2.9, w:3.9};
 
 function buildNotes(bars){
@@ -302,12 +339,13 @@ var X0 = 10, X1 = 790, TS_W = 56, PAD = 14;
 var PB = (X1 - X0 - TS_W - 30) / TOTAL;
 function xb(b){ return X0 + TS_W + b * PB; }
 function xOf(start){ return xb(start) + PAD; }
-var svg = document.getElementById("svg");
+var svg = $("svg");
 var NS = "http://www.w3.org/2000/svg";
 function el(n, a){ var e = document.createElementNS(NS, n); for(var k in a) e.setAttribute(k, a[k]); if(svg) svg.appendChild(e); return e; }
 function beam(xa, xz, y, th){ el("polygon",{points:xa+","+y+" "+xz+","+y+" "+xz+","+(y+th)+" "+xa+","+(y+th),fill:"#222"}); }
 
 function drawScoreToSvg(targetSvg, notes, res, extras, marks){
+  if(!targetSvg) return;
   while(targetSvg.firstChild) targetSvg.removeChild(targetSvg.firstChild);
   var top = 40, bot = 140, HY = 105, STEM = 50, TOPY = HY - STEM;
   var oldSvg = svg;
@@ -315,7 +353,7 @@ function drawScoreToSvg(targetSvg, notes, res, extras, marks){
   el("rect",{x:X0,y:top,width:X1-X0,height:bot-top,fill:"none",stroke:"#333","stroke-width":3});
   el("line",{x1:xb(4),y1:top,x2:xb(4),y2:bot,stroke:"#333","stroke-width":3});
   el("line",{x1:X0+TS_W,y1:100,x2:X1,y2:100,stroke:"#ccc","stroke-width":1});
-  el("rect",{x:X0+TS_W,y:148,width:X1-X0-TS_W,height:10,rx:5,fill:"#eee"});   
+  el("rect",{x:X0+TS_W,y:148,width:X1-X0-TS_W,height:10,rx:5,fill:"#eee"});
   for(var b=1;b<TOTAL;b++){ if(b===4) continue; el("line",{x1:xb(b),y1:bot-4,x2:xb(b),y2:bot,stroke:"#ccc"}); }
   var f = {x:X0+TS_W/2,"text-anchor":"middle","font-size":34,"font-weight":"bold",fill:"#333"};
   f.y = 83; el("text",f).textContent = "4";
@@ -380,27 +418,29 @@ function drawScoreToSvg(targetSvg, notes, res, extras, marks){
 }
 
 function drawScore(notes, res, extras, marks){
-  if(svg) drawScoreToSvg(svg, notes, res, extras, marks);
+  if($("svg")) drawScoreToSvg($("svg"), notes, res, extras, marks);
 }
 
 function setMarker(m, t){
-  var x = Math.min(X1 - 14, xb(t.s / BEAT) + PAD);          
+  var x = Math.min(X1 - 14, xb(t.s / BEAT) + PAD);
   var w = Math.max(0, t.d / BEAT * PB);
   m.b.setAttribute("x", x - 5);
   m.b.setAttribute("width", Math.min(X1 - 4 - (x - 5), w + 10));
   m.h.setAttribute("cx", x);
 }
 function addMarker(t){
-  var b = el("rect",{y:148,height:10,rx:5,fill:"#9bdcb0"});                 
-  var h = el("circle",{cy:153,r:6.5,fill:"#157a3c",stroke:"#fff","stroke-width":1.5});   
+  var oldSvg = svg;
+  svg = $("svg");
+  var b = el("rect",{y:148,height:10,rx:5,fill:"#9bdcb0"});
+  var h = el("circle",{cy:153,r:6.5,fill:"#157a3c",stroke:"#fff","stroke-width":1.5});
+  svg = oldSvg;
   var m = {b:b, h:h};
   setMarker(m, t);
   return m;
 }
 
-var $ = function(id){ return document.getElementById(id); };
 var notes = [], curPat = null, currentLevelIndex = 0, currentProblemIndex = 0, demoOn = true;
-var isStoryPlay = false; 
+var isStoryPlay = false;
 var state = "idle", useDemo = true, canTap = false;
 var t0, countStart, recStart, recEnd;
 var taps = [], active = {}, rafId = 0, busyUntil = 0;
@@ -467,7 +507,7 @@ function enterFromStart(){
   if(!startScreen || startScreen.dataset.leaving === "1") return;
   startScreen.dataset.leaving = "1";
   playStartTapSound();
-  $("sTop").classList.add("on");
+  if($("sTop")) $("sTop").classList.add("on");
   startScreen.classList.add("leaving");
   setTimeout(function(){
     show("sTop");
@@ -477,20 +517,25 @@ function enterFromStart(){
 }
 
 function show(id){
-  ["sStart","sTop","sSet","sPrac","sGame","sStoryChapters","sStoryMap","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
-  
+  ["sStart","sTop","sSet","sPrac","sGame","sStoryChapters","sStoryMap","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){
+    var elScreen = $(s);
+    if(elScreen) elScreen.classList.toggle("on", s === id);
+  });
+
   var backBtn = $("back");
-  if(id === "sTop" || id === "sStart"){
-    backBtn.style.display = "none";
-  } else if(id === "sGame"){
-    backBtn.style.display = "block";
-    backBtn.textContent = isStoryPlay ? "← ステージマップへもどる" : "← 問題リストへもどる";
-  } else if(id === "sStoryMap" || id === "sQuiz"){
-    backBtn.style.display = "block";
-    backBtn.textContent = "← 章のせんたくへ";
-  } else {
-    backBtn.style.display = "block";
-    backBtn.textContent = "← トップへ";
+  if(backBtn){
+    if(id === "sTop" || id === "sStart"){
+      backBtn.style.display = "none";
+    } else if(id === "sGame"){
+      backBtn.style.display = "block";
+      backBtn.textContent = isStoryPlay ? "← マップへ" : "← もんだいへ";
+    } else if(id === "sStoryMap" || id === "sQuiz"){
+      backBtn.style.display = "block";
+      backBtn.textContent = "← 章へ";
+    } else {
+      backBtn.style.display = "block";
+      backBtn.textContent = "← トップへ";
+    }
   }
 
   if(id === "sTop") startTopBgm();
@@ -499,11 +544,11 @@ function show(id){
 
 function goBackAction(){
   if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
-  if($("sGame").classList.contains("on")){
+  if($("sGame") && $("sGame").classList.contains("on")){
     state = "idle"; canTap = false;
     cancelAnimationFrame(rafId);
     clearTimeout(calTimer);
-    $("popup").style.display = "none";
+    if($("popup")) $("popup").style.display = "none";
     releaseAll();
     stopAll();
     if(isStoryPlay){
@@ -512,7 +557,7 @@ function goBackAction(){
       renderProblemList(selectedPracLevel);
       show("sPrac");
     }
-  } else if($("sStoryMap").classList.contains("on") || $("sQuiz").classList.contains("on")){
+  } else if(($("sStoryMap") && $("sStoryMap").classList.contains("on")) || ($("sQuiz") && $("sQuiz").classList.contains("on"))){
     openStoryChapters();
   } else {
     goTop();
@@ -524,9 +569,10 @@ function goTop(){
   state = "idle"; canTap = false;
   cancelAnimationFrame(rafId);
   clearTimeout(calTimer);
-  $("popup").style.display = "none";
+  if($("popup")) $("popup").style.display = "none";
   releaseAll();
   stopAll();
+  loadAccounts();
   show("sTop");
 }
 
@@ -560,7 +606,7 @@ function startRun(){
   t0 = ctx.currentTime + 0.4;
   if(useDemo){ scheduleDemo(t0); metro(t0); countStart = t0 + TOTAL*BEAT + 0.6; }
   else countStart = t0 + 0.3;
-  recStart = countStart + 4*BEAT;       
+  recStart = countStart + 4*BEAT;
   recEnd = recStart + TOTAL*BEAT;
   for(var i=0;i<12;i++) click(countStart + i*BEAT, i%4===0);
   state = "run";
@@ -570,7 +616,7 @@ function startRun(){
 function tick(){
   if(state !== "run") return;
   var now = ctx.currentTime;
-  var vnow = now - latSec();      
+  var vnow = now - latSec();
   canTap = now >= countStart;
   $("tap").classList.toggle("off", !canTap);
   for(var id in active){
@@ -613,20 +659,20 @@ function startCal(){
     if(state !== "cal" || cal) return;
     stopAll(); refreshOffset();
     cal = {t0: ctx.currentTime + 0.5, beat: 60 / 75, lags: [], ks: []};
-    for(var i=0;i<90;i++) click(cal.t0 + i*cal.beat, false);   
+    for(var i=0;i<90;i++) click(cal.t0 + i*cal.beat, false);
   };
   var r = null;
   try{ r = ctx.resume(); }catch(e){}
   if(ctx.state === "running") go();
   else if(r && r.then) r.then(function(){ setTimeout(go, 150); }, go);
-  calTimer = setTimeout(go, 1500);   
+  calTimer = setTimeout(go, 1500);
 }
 function calTap(at){
   if(!cal) return;
-  var k = Math.round((at - cal.t0) / cal.beat);               
+  var k = Math.round((at - cal.t0) / cal.beat);
   if(k < 0) return;
   cal.ks.push(k);
-  cal.lags.push(at - (cal.t0 + k*cal.beat));                    
+  cal.lags.push(at - (cal.t0 + k*cal.beat));
   var n = cal.lags.length, d = "";
   for(var i=0;i<4;i++) d += (i < n ? "●" : "○") + " ";
   $("count").textContent = d;
@@ -635,14 +681,14 @@ function calTap(at){
 function finishCal(){
   var L = cal.lags.slice().sort(function(a, b){ return a - b; });
   state = "caldone"; canTap = false;
-  stopAll();   
-  if(L[3] - L[0] > 0.25){                                       
+  stopAll();
+  if(L[3] - L[0] > 0.25){
     $("msg").textContent = "タップがばらついたよ\nもう一度やってみよう";
     $("count").textContent = "";
     calTimer = setTimeout(startCal, 1500);
     return;
   }
-  calLag = Math.max(-0.3, Math.min(0.5, (L[1] + L[2]) / 2));    
+  calLag = Math.max(-0.3, Math.min(0.5, (L[1] + L[2]) / 2));
   var ms = Math.round(calLag*1000);
   $("msg").textContent = "調整できたよ！（ずれ " + ms + "ミリ秒）";
   $("count").textContent = "OK";
@@ -650,21 +696,21 @@ function finishCal(){
     if(state !== "caldone") return;
     state = "popup";
     $("popSub").textContent = "タイミング調整ずみ（ずれ " + ms + "ミリ秒）";
-    $("popup").style.display = "flex";                        
+    $("popup").style.display = "flex";
   }, 700);
 }
 
 function judge(){
   var has16 = notes.some(function(n){ return n.type==="x" || n.type==="d"; });
   var tolBase = (has16 ? 0.18 : 0.3) * BEAT, tolLong = 0.4 * BEAT;
-  var PENALTY = 5;                 
+  var PENALTY = 5;
   var used = [], res = [], pairs = [], done = {};
   var U = 0, hitU = 0, missU = 0, usedN = 0, hitN = 0, sum = 0;
   var warnQ = false, warnS = false, warnTie = false, longShort = false;
-  
+
   notes.forEach(function(n, i){
     if(n.rest || n.tiedFrom) return;
-    n.units = n.chain >= 2 ? Math.floor(n.chain + 1e-6) : 1;   
+    n.units = n.chain >= 2 ? Math.floor(n.chain + 1e-6) : 1;
     U += n.units;
     var tolN = tolBase;
     if(n.units >= 2 || (n.start === 0 && !has16)) tolN = Math.max(tolBase, tolLong);
@@ -673,15 +719,15 @@ function judge(){
       if(d <= tolN) pairs.push({i:i, j:j, d:d});
     });
   });
-  pairs.sort(function(a, b){ return a.d - b.d; });     
+  pairs.sort(function(a, b){ return a.d - b.d; });
   pairs.forEach(function(p){
     if(done[p.i] || used[p.j]) return;
     done[p.i] = true; used[p.j] = true; usedN++; hitN++;
-    var n = notes[p.i], t = taps[p.j], hold = t.d / BEAT;   
+    var n = notes[p.i], t = taps[p.j], hold = t.d / BEAT;
     sum += t.s - n.start*BEAT;
     var covered = n.units;
     if(n.units >= 2){
-      covered = Math.min(n.units, Math.max(1, Math.floor(hold + 0.5)));   
+      covered = Math.min(n.units, Math.max(1, Math.floor(hold + 0.5)));
     } else if(n.tie){
       if(hold < 0.5 * n.chain) warnTie = true;
     } else if(n.type === "q"){
@@ -705,7 +751,7 @@ function judge(){
     U += 1;
     var rStart = n.start * BEAT;
     var rEnd = (n.start + n.duration) * BEAT;
-    
+
     var violated = false;
     taps.forEach(function(t){
       if(t.s < rEnd - 0.08 && (t.s + t.d) > rStart + 0.08){ violated = true; }
@@ -730,7 +776,7 @@ function judge(){
   });
 
   var score = Math.max(0, Math.round(hitU / U * 100 - extra * PENALTY));
-  
+
   if(isStoryPlay){
     setStoryScore(currentChapterIdx, currentStoryStage, score);
   } else {
@@ -765,7 +811,7 @@ function judge(){
   $("detail").innerHTML = lines.map(function(l){ return "<div>◇" + l + "</div>"; }).join("");
   $("msg").style.display = "none";
   $("result").style.display = "block";
-  
+
   if(isStoryPlay){
     $("nextBtn").textContent = "ステージマップへ";
   } else {
@@ -785,9 +831,9 @@ function judge(){
 var tapBtn = $("tap");
 var STAR_COLORS = ["#ffd84a","#ffffff","#ff9ec5","#8fd3ff","#ffb04a"];
 function tapFx(e){
-  tapBtn.classList.remove("pulse"); void tapBtn.offsetWidth; tapBtn.classList.add("pulse");   
+  tapBtn.classList.remove("pulse"); void tapBtn.offsetWidth; tapBtn.classList.add("pulse");
   var box = $("fx");
-  if(box.childNodes.length > 70) return;                                                    
+  if(box.childNodes.length > 70) return;
   var r = $("tapArea").getBoundingClientRect();
   var x = e.clientX - r.left, y = e.clientY - r.top;
   var made = [];
@@ -812,7 +858,9 @@ function tapFx(e){
   for(var j=0;j<3;j++) fly(put("spark", x, y), 60);
   setTimeout(function(){ made.forEach(function(d){ if(d.parentNode) d.parentNode.removeChild(d); }); }, 700);
 }
-tapBtn.addEventListener("animationend", function(){ tapBtn.classList.remove("pulse"); });
+if(tapBtn){
+  tapBtn.addEventListener("animationend", function(){ tapBtn.classList.remove("pulse"); });
+}
 function latSec(){ return calLag + 0.05 + timingOfs / 1000; }
 function relTime(ts){ return (ts/1000 + perfOffset) - recStart - latSec(); }
 function releaseAll(){
@@ -822,95 +870,107 @@ function releaseAll(){
     if(a.tap){ a.tap.d = Math.max(0.05, TOTAL*BEAT - a.tap.s); if(a.rect) setMarker(a.rect, a.tap); }
   }
   active = {};
-  tapBtn.classList.remove("down");
+  if(tapBtn) tapBtn.classList.remove("down");
 }
-tapBtn.addEventListener("pointerdown", function(e){
-  e.preventDefault();
-  if(!canTap || active[e.pointerId]) return;      
-  if(ctx && ctx.state !== "running"){ try{ ctx.resume(); }catch(x){} }
-  try{ tapBtn.setPointerCapture(e.pointerId); }catch(x){}
-  tapBtn.classList.add("down");
-  try{ tapFx(e); }catch(x){}
-  var a = {v: null, tap: null, rect: null};   
-  active[e.pointerId] = a;
-  if(state === "cal") calTap(e.timeStamp/1000 + perfOffset);
-  if(state === "run"){
-    var r = relTime(e.timeStamp);
-    if(r > -0.25 && r < TOTAL*BEAT){
-      if(r < 0) r = 0;
-      a.tap = {s:r, d:0.1};
-      taps.push(a.tap);
-      a.rect = addMarker(a.tap);
+if(tapBtn){
+  tapBtn.addEventListener("pointerdown", function(e){
+    e.preventDefault();
+    if(!canTap || active[e.pointerId]) return;
+    if(ctx && ctx.state !== "running"){ try{ ctx.resume(); }catch(x){} }
+    try{ tapBtn.setPointerCapture(e.pointerId); }catch(x){}
+    tapBtn.classList.add("down");
+    try{ tapFx(e); }catch(x){}
+    var a = {v: null, tap: null, rect: null};
+    active[e.pointerId] = a;
+    if(state === "cal") calTap(e.timeStamp/1000 + perfOffset);
+    if(state === "run"){
+      var r = relTime(e.timeStamp);
+      if(r > -0.25 && r < TOTAL*BEAT){
+        if(r < 0) r = 0;
+        a.tap = {s:r, d:0.1};
+        taps.push(a.tap);
+        a.rect = addMarker(a.tap);
+      }
     }
-  }
-});
+  });
+}
 function release(e){
   var a = active[e.pointerId];
   if(!a) return;
   if(a.v) a.v(ctx.currentTime);
   if(a.tap){ a.tap.d = Math.max(0.05, relTime(e.timeStamp) - a.tap.s); if(a.rect) setMarker(a.rect, a.tap); }
   delete active[e.pointerId];
-  if(!Object.keys(active).length) tapBtn.classList.remove("down");
+  if(tapBtn && !Object.keys(active).length) tapBtn.classList.remove("down");
 }
-tapBtn.addEventListener("pointerup", release);
-tapBtn.addEventListener("pointercancel", release);
-tapBtn.addEventListener("lostpointercapture", release);
-tapBtn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+if(tapBtn){
+  tapBtn.addEventListener("pointerup", release);
+  tapBtn.addEventListener("pointercancel", release);
+  tapBtn.addEventListener("lostpointercapture", release);
+  tapBtn.addEventListener("contextmenu", function(e){ e.preventDefault(); });
+}
 
 function guard(){ var n = performance.now(); if(n < busyUntil) return false; busyUntil = n + 300; return true; }
-$("demoBtn").addEventListener("click", function(){
-  if(!guard()) return; ensureAudio(); stopAll();
-  var b = ctx.currentTime + 0.15;
-  scheduleDemo(b); metro(b);
-});
-$("mineBtn").addEventListener("click", function(){
-  if(!guard()) return; ensureAudio(); stopAll();
-  var b = ctx.currentTime + 0.15;
-  metro(b);
-  taps.forEach(function(t){ piano(b + t.s, Math.min(Math.max(t.d, 0.05), 2)); });
-});
-$("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
-$("nextBtn").addEventListener("click", function(){
-  if(!guard()) return;
-  if(isStoryPlay){
-    openStoryMap(currentChapterIdx);
-  } else {
-    var lvlObj = levels[currentLevelIndex];
-    var nextProbIdx = currentProblemIndex + 1;
-    if(nextProbIdx >= lvlObj.pats.length){
-      nextProbIdx = 0;
-      currentLevelIndex = (currentLevelIndex + 1) % levels.length;
+if($("demoBtn")){
+  $("demoBtn").addEventListener("click", function(){
+    if(!guard()) return; ensureAudio(); stopAll();
+    var b = ctx.currentTime + 0.15;
+    scheduleDemo(b); metro(b);
+  });
+}
+if($("mineBtn")){
+  $("mineBtn").addEventListener("click", function(){
+    if(!guard()) return; ensureAudio(); stopAll();
+    var b = ctx.currentTime + 0.15;
+    metro(b);
+    taps.forEach(function(t){ piano(b + t.s, Math.min(Math.max(t.d, 0.05), 2)); });
+  });
+}
+if($("againBtn")){
+  $("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
+}
+if($("nextBtn")){
+  $("nextBtn").addEventListener("click", function(){
+    if(!guard()) return;
+    if(isStoryPlay){
+      openStoryMap(currentChapterIdx);
+    } else {
+      var lvlObj = levels[currentLevelIndex];
+      var nextProbIdx = currentProblemIndex + 1;
+      if(nextProbIdx >= lvlObj.pats.length){
+        nextProbIdx = 0;
+        currentLevelIndex = (currentLevelIndex + 1) % levels.length;
+      }
+      loadSelectedProblem(currentLevelIndex, nextProbIdx);
+      startRun();
     }
-    loadSelectedProblem(currentLevelIndex, nextProbIdx);
+  });
+}
+if($("sStart")){
+  $("sStart").addEventListener("click", enterFromStart);
+  $("sStart").addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      enterFromStart();
+    }
+  });
+}
+
+if($("back")) $("back").addEventListener("click", goBackAction);
+if($("popBtn")){
+  $("popBtn").addEventListener("click", function(){
+    if(state !== "popup") return;
+    $("popup").style.display = "none";
     startRun();
-  }
-});
-$("sStart").addEventListener("click", enterFromStart);
-$("sStart").addEventListener("keydown", function(e){
-  if(e.key === "Enter" || e.key === " "){
-    e.preventDefault();
-    enterFromStart();
-  }
-});
+  });
+}
 
-$("back").addEventListener("click", goBackAction);
-$("popBtn").addEventListener("click", function(){
-  if(state !== "popup") return;
-  $("popup").style.display = "none";
-  startRun();
-});
-
-$("goQuest").addEventListener("click", function(){
-  ensureAudio();
-  loadAccounts();
-  if(accounts.length === 0){
-    selectedNewIcon = ICONS[0];
-    renderIconGrid();
-    show("sNewCharIcon");
-  } else {
+if($("goQuest")){
+  $("goQuest").addEventListener("click", function(){
+    ensureAudio();
+    if(!ensurePlayerSelected("ストーリーモード")) return;
     openStoryChapters();
-  }
-});
+  });
+}
 
 function openStoryChapters(){
   show("sStoryChapters");
@@ -945,7 +1005,7 @@ function openStoryChapters(){
 function openStoryMap(chapterIdx){
   currentChapterIdx = chapterIdx;
   const chapter = STORY_CHAPTERS[chapterIdx];
-  
+
   show("sStoryMap");
   $("mapChapterTitle").textContent = chapter.title;
 
@@ -987,14 +1047,16 @@ function openStoryMap(chapterIdx){
   };
 }
 
-$("backToChaptersBtn").addEventListener("click", function(){
-  openStoryChapters();
-});
+if($("backToChaptersBtn")){
+  $("backToChaptersBtn").addEventListener("click", function(){
+    openStoryChapters();
+  });
+}
 
 function startStoryStage(chapterIdx, stageNum){
   isStoryPlay = true;
   currentStoryStage = stageNum;
-  
+
   let patPool = levels[stageNum].pats;
   let randomPat = patPool[Math.floor(Math.random() * patPool.length)];
   curPat = randomPat;
@@ -1014,7 +1076,7 @@ function startComposerQuiz(chapterIdx){
   $("composerMessage").textContent = `「わし（${chapter.composer}）の曲を当ててみたまえ！」`;
 
   const listEl = $("quizOptionsList");
-  
+
   let correctTrack = chapter.tracks[Math.floor(Math.random() * chapter.tracks.length)];
   let wrongTracks = MUSIC_DATABASE.filter(t => t.file !== correctTrack.file);
   wrongTracks.sort(() => Math.random() - 0.5);
@@ -1049,7 +1111,7 @@ function startComposerQuiz(chapterIdx){
 
     card.addEventListener("click", () => {
       if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
-      
+
       if(isCorr){
         playTestBuzzer('correct');
         alert(`正解！さすがよく聴いているね！\n${chapter.composer}の章をクリアした！✨`);
@@ -1063,15 +1125,18 @@ function startComposerQuiz(chapterIdx){
   });
 }
 
-$("backToMapFromQuizBtn").addEventListener("click", function(){
-  if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
-  openStoryMap(currentChapterIdx);
-});
+if($("backToMapFromQuizBtn")){
+  $("backToMapFromQuizBtn").addEventListener("click", function(){
+    if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
+    openStoryMap(currentChapterIdx);
+  });
+}
 
 var selectedPracLevel = 0;
 function renderProblemList(lvlIdx){
   selectedPracLevel = lvlIdx;
   var container = $("problemListContainer");
+  if(!container) return;
   container.innerHTML = "";
   var pats = levels[lvlIdx].pats;
 
@@ -1080,25 +1145,25 @@ function renderProblemList(lvlIdx){
     var hiScore = getHighScore(lvlIdx, idx);
 
     var card = document.createElement("div");
-    card.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:#fff; padding:8px 12px; border-radius:14px; border:2px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.06); cursor:pointer; gap:10px;";
-    
+    card.style.cssText = "display:flex; align-items:center; justify-content:space-between; background:#fff; padding:8px 12px; border-radius:14px; border:2px solid #ddd; box-shadow:0 2px 6px rgba(0,0,0,0.06); cursor:pointer; gap:10px; width:100%;";
+
     var infoDiv = document.createElement("div");
-    infoDiv.style.cssText = "min-width:90px; font-weight:bold; font-size:15px; color:#444;";
+    infoDiv.style.cssText = "min-width:86px; font-weight:bold; font-size:15px; color:#444;";
     infoDiv.innerHTML = `No.${idx + 1}<br><span style="font-size:12px; color:#e2592f;">最高: ${hiScore}点</span>`;
     card.appendChild(infoDiv);
 
     var svgWrap = document.createElement("div");
-    svgWrap.style.cssText = "flex:1; background:#fafafa; border-radius:8px; padding:2px; overflow:hidden;";
+    svgWrap.style.cssText = "flex:1; min-width:0; background:#fafafa; border-radius:8px; padding:2px; overflow:hidden;";
     var miniSvg = document.createElementNS(NS, "svg");
     miniSvg.setAttribute("viewBox", "0 0 800 172");
-    miniSvg.style.cssText = "width:100%; height:55px; display:block;";
+    miniSvg.style.cssText = "width:100%; height:52px; display:block;";
     drawScoreToSvg(miniSvg, notesTmp);
     svgWrap.appendChild(miniSvg);
     card.appendChild(svgWrap);
 
     var playBtn = document.createElement("button");
     playBtn.textContent = "えらぶ";
-    playBtn.style.cssText = "font-size:14px; padding:8px 14px; border-radius:12px;";
+    playBtn.style.cssText = "font-size:14px; padding:8px 12px; border-radius:12px; flex-shrink:0;";
     playBtn.addEventListener("click", function(e){
       e.stopPropagation();
       ensureAudio();
@@ -1140,6 +1205,7 @@ makePracticeLevelToggles();
 
 function renderIconGrid(){
   const grid = $("iconGrid");
+  if(!grid) return;
   grid.innerHTML = ICONS.map(iconPath => `
     <div class="icon-item ${iconPath === selectedNewIcon ? 'selected' : ''}" data-icon="${iconPath}">
       <img src="${iconPath}">
@@ -1156,6 +1222,7 @@ function renderIconGrid(){
 
 function renderAccountList(){
   const list = $("accountList");
+  if(!list) return;
   list.innerHTML = accounts.map(acc => `
     <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}">
       <div style="display:flex;align-items:center;gap:12px;font-size:18px">
@@ -1172,9 +1239,9 @@ function renderAccountList(){
     card.addEventListener("click", function(e){
       if(e.target.classList.contains("del-acc-btn")) return;
       const id = this.getAttribute("data-id");
-      currentAccount = accounts.find(a => a.id === id);
+      currentAccount = accounts.find(a => a.id === id) || null;
       saveAccountsToLocal();
-      openStoryChapters();
+      goTop();
     });
   });
 
@@ -1185,68 +1252,74 @@ function renderAccountList(){
       if(confirm("このキャラクターを削除しますか？")){
         accounts = accounts.filter(a => a.id !== id);
         if(currentAccount && currentAccount.id === id){
-          currentAccount = accounts.length > 0 ? accounts[0] : null;
+          currentAccount = null;
         }
         saveAccountsToLocal();
+        updateProfileBtnUI();
         renderAccountList();
       }
     });
   });
 }
 
-$("topPlayerDisplay").addEventListener("click", function(){
-  loadAccounts();
-  if(accounts.length === 0){
+if($("topPlayerDisplay")){
+  $("topPlayerDisplay").addEventListener("click", openPlayerSelectScreen);
+  $("topPlayerDisplay").addEventListener("keydown", function(e){
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      openPlayerSelectScreen();
+    }
+  });
+}
+
+if($("toNewCharBtn")){
+  $("toNewCharBtn").addEventListener("click", function(){
     selectedNewIcon = ICONS[0];
     renderIconGrid();
     show("sNewCharIcon");
-  } else {
-    renderAccountList();
-    show("sCharSelect");
-  }
-});
+  });
+}
 
-$("toNewCharBtn").addEventListener("click", function(){
-  selectedNewIcon = ICONS[0];
-  renderIconGrid();
-  show("sNewCharIcon");
-});
+if($("nextToNameBtn")){
+  $("nextToNameBtn").addEventListener("click", function(){
+    $("selectedIconPreview").src = selectedNewIcon;
+    $("newNickname").value = "";
+    show("sNewCharName");
+  });
+}
 
-$("nextToNameBtn").addEventListener("click", function(){
-  $("selectedIconPreview").src = selectedNewIcon;
-  $("newNickname").value = "";
-  show("sNewCharName");
-});
+if($("createAccBtn")){
+  $("createAccBtn").addEventListener("click", function(){
+    const nick = $("newNickname").value.trim();
+    if(!nick){ alert("なまえを入力してね！"); return; }
 
-$("createAccBtn").addEventListener("click", function(){
-  const nick = $("newNickname").value.trim();
-  if(!nick){ alert("なまえを入力してね！"); return; }
-  
-  const newAcc = {
-    id: 'user_' + Math.random().toString(36).substring(2, 9),
-    secret_code: 'rc-' + Math.floor(1000 + Math.random() * 9000),
-    icon: selectedNewIcon,
-    nickname: nick,
-    tokens: 0,
-    position: 1,
-    highScores: {},
-    storyScores: {}
-  };
-  accounts.push(newAcc);
-  currentAccount = newAcc;
-  saveAccountsToLocal();
-  if(supabaseClient){
-    supabaseClient.from('profiles').upsert({
-      id: newAcc.id, secret_code: newAcc.secret_code, nickname: newAcc.nickname, icon: newAcc.icon
-    }).then(()=>{});
-  }
-  
-  openStoryChapters();
-});
+    const newAcc = {
+      id: 'user_' + Math.random().toString(36).substring(2, 9),
+      secret_code: 'rc-' + Math.floor(1000 + Math.random() * 9000),
+      icon: selectedNewIcon,
+      nickname: nick,
+      tokens: 0,
+      position: 1,
+      highScores: {},
+      storyScores: {}
+    };
+    accounts.push(newAcc);
+    currentAccount = newAcc;
+    saveAccountsToLocal();
+    if(supabaseClient){
+      supabaseClient.from('profiles').upsert({
+        id: newAcc.id, secret_code: newAcc.secret_code, nickname: newAcc.nickname, icon: newAcc.icon
+      }).then(()=>{});
+    }
+
+    goTop();
+  });
+}
 
 function makeToggle(boxId, labels, init, onPick){
   var box = $(boxId), btns = [];
   if(!box) return;
+  box.innerHTML = "";
   labels.forEach(function(lb, i){
     var b = document.createElement("button");
     b.className = "tg" + (i===init ? " on" : ""); b.textContent = lb;
@@ -1275,38 +1348,45 @@ function setTheme(i){
 }
 makeToggle("themeTg", ["パステル","トロピカル","オーシャン"], themeIdx, setTheme);
 
-$("volM").value = volMetro; $("volMv").textContent = volMetro;
-$("volT").value = volTap;   $("volTv").textContent = volTap;
-$("volM").addEventListener("input", function(){ volMetro = parseInt(this.value,10); $("volMv").textContent = volMetro; saveSet(); });
-$("volT").addEventListener("input", function(){ volTap = parseInt(this.value,10); $("volTv").textContent = volTap; saveSet(); });
-$("ofsS").value = timingOfs; $("ofsV").textContent = timingOfs;
-$("ofsS").addEventListener("input", function(){ timingOfs = parseInt(this.value,10); $("ofsV").textContent = timingOfs; saveSet(); });
+if($("volM")) $("volM").value = volMetro;
+if($("volMv")) $("volMv").textContent = volMetro;
+if($("volT")) $("volT").value = volTap;
+if($("volTv")) $("volTv").textContent = volTap;
+if($("volM")) $("volM").addEventListener("input", function(){ volMetro = parseInt(this.value,10); $("volMv").textContent = volMetro; saveSet(); });
+if($("volT")) $("volT").addEventListener("input", function(){ volTap = parseInt(this.value,10); $("volTv").textContent = volTap; saveSet(); });
+if($("ofsS")) $("ofsS").value = timingOfs;
+if($("ofsV")) $("ofsV").textContent = timingOfs;
+if($("ofsS")) $("ofsS").addEventListener("input", function(){ timingOfs = parseInt(this.value,10); $("ofsV").textContent = timingOfs; saveSet(); });
 
-[60,75,90,105,120].forEach(function(v){
-  var o = document.createElement("option"); o.value = v; o.textContent = v; if(v===BPM) o.selected = true;
-  $("bpmSel").appendChild(o);
-});
-$("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10)); saveSet(); });
+if($("bpmSel")){
+  [60,75,90,105,120].forEach(function(v){
+    var o = document.createElement("option"); o.value = v; o.textContent = v; if(v===BPM) o.selected = true;
+    $("bpmSel").appendChild(o);
+  });
+  $("bpmSel").addEventListener("change", function(){ setBpm(parseInt(this.value,10)); saveSet(); });
+}
 
-$("goPrac").addEventListener("click", function(){
-  ensureAudio();
-  renderProblemList(0);
-  show("sPrac");
-});
-$("goSet").addEventListener("click", function(){ show("sSet"); });
-$("profileBtn").addEventListener("click", function(){
-  loadAccounts();
-  if(accounts.length === 0){
-    selectedNewIcon = ICONS[0];
-    renderIconGrid();
-    show("sNewCharIcon");
-  } else {
-    renderAccountList();
-    show("sCharSelect");
-  }
-});
+if($("goPrac")){
+  $("goPrac").addEventListener("click", function(){
+    ensureAudio();
+    if(!ensurePlayerSelected("練習モード")) return;
+    makePracticeLevelToggles();
+    renderProblemList(0);
+    show("sPrac");
+  });
+}
 
-// 初期化時にアカウントとUI表示を確定
+if($("goSet")){
+  $("goSet").addEventListener("click", function(){
+    ensureAudio();
+    show("sSet");
+  });
+}
+
+if($("profileBtn")){
+  $("profileBtn").addEventListener("click", openPlayerSelectScreen);
+}
+
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", loadAccounts);
 } else {
