@@ -922,6 +922,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
 
 /* START画面 */
 #sStart {
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -932,6 +933,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   padding: 0;
   gap: 0;
   overflow: hidden;
+  flex-direction: column;
   justify-content: flex-end;
   background: #222 url("picture/start01.jpg") center center / cover no-repeat;
   cursor: pointer;
@@ -939,6 +941,9 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   transition: opacity .55s ease, transform .55s ease;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+#sStart.on {
+  display: flex;
 }
 #sStart.leaving {
   opacity: 0;
