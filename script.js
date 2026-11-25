@@ -1103,7 +1103,6 @@ function openStoryMap(chapterIdx){
   const bossIcon = $("mapBossIcon");
   setImgSrcWithLoading(bossIcon, chapter.icon);
 
-  // テスト段階のため、いつでもボスに挑戦できるように開放
   const canChallengeBoss = true;
   bossNode.classList.remove("locked");
   bossNode.classList.add("unlocked");
