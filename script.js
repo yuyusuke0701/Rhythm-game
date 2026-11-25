@@ -243,8 +243,9 @@ MUSIC_DATABASE.forEach(item => {
 });
 const STORY_CHAPTERS = Object.keys(COMPOSERS_MAP).map((compName, idx) => ({
   id: idx,
-  title: `第${idx+1}章 〜${compName}〜`,
+  chapNum: `第${idx+1}章`,
   composer: compName,
+  title: `第${idx+1}章 〜${compName}〜`,
   icon: COMPOSERS_MAP[compName].icon,
   tracks: COMPOSERS_MAP[compName].tracks
 }));
@@ -1002,8 +1003,11 @@ function openStoryChapters(){
       <div class="chapter-card" data-chapter="${ch.id}">
         <img class="chapter-card-img" src="${ch.icon}" alt="${ch.composer}">
         <div class="chapter-card-body">
-          <div class="chapter-card-title">${ch.title}</div>
-          <div class="chapter-card-sub">クリア: ${clearedCount} / 3 ステージ</div>
+          <div class="chapter-card-title">
+            <span class="chap-num-badge">${ch.chapNum}</span>
+            <span class="chap-composer-name">〜${ch.composer}〜</span>
+          </div>
+          <div class="chapter-card-sub">クリア: ${clearedCount}/3</div>
         </div>
         <button class="chapter-card-btn">挑戦 →</button>
       </div>
