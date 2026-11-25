@@ -1,208 +1,215 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>がくふがよめる！リズムマスターへの道</title>
-<!-- Supabase SDKの読み込み -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- 外部CSSの読み込み -->
 <link rel="stylesheet" href="style.css">
 </head>
-<body data-theme="2" class="portrait-locked">
-<button id="back" style="display:none">← もどる</button>
-<button id="profileBtn" style="display:none">👤 プレーヤー</button>
+<body>
+<div id="app">
 
-<div id="popup" style="display:none">
-  <div class="card">
-    <div class="pt" id="popTitle">スタート！</div>
-    <div class="ps" id="popSub"></div>
-    <button id="popBtn">スタート</button>
+<!-- スタート画面（全画面タイトル画像・タップでトップへ） -->
+<div id="sStart" role="button" tabindex="0" aria-label="画面をタップしてはじめる">
+  <div class="start-prompt">画面をタップしてはじめる</div>
+</div>
+
+<!-- トップ画面 -->
+<div id="sTop" class="screen">
+  <div class="title-box">
+    <div class="title-badge">♪ RHYTHM MASTER ♪</div>
+    <h1>
+      <span class="title-sub">がくふがよめる！</span>
+      <span class="title-main">リズムマスターへの道</span>
+    </h1>
+  </div>
+
+  <!-- プレイヤー表示＆選択促しカード -->
+  <div id="topPlayerDisplay" class="top-player-display unselected" role="button" tabindex="0" aria-label="プレイヤーをえらぶ・きりかえる">
+    <div class="img-load-frame">
+      <span class="img-loading-text">読み込み中…</span>
+      <img id="topPlayerIconImg" src="icon/char01.png" alt="プレイヤーアイコン">
+    </div>
+    <div class="top-player-info">
+      <span id="topPlayerStatusBadge" class="player-badge">！まだえらばれていません</span>
+      <span id="topPlayerNameTxt">プレイヤー未選択</span>
+      <span id="topPlayerHintTxt" class="player-hint">ここをタップしてプレイヤーをえらんでね</span>
+    </div>
+    <span class="top-player-arrow" aria-hidden="true">›</span>
+  </div>
+
+  <div class="menu-stack">
+    <button id="goQuest" class="big menu-btn">
+      <span class="menu-num">01</span>
+      <span class="menu-label">ストーリーモード</span>
+      <span class="menu-sub">作曲家とリズムのぼうけん</span>
+    </button>
+    <button id="goPrac" class="big menu-btn">
+      <span class="menu-num">02</span>
+      <span class="menu-label">れんしゅうモード</span>
+      <span class="menu-sub">リズムをじっくり特訓</span>
+    </button>
+    <button id="goSet" class="big menu-btn">
+      <span class="menu-num">03</span>
+      <span class="menu-label">せってい</span>
+      <span class="menu-sub">テンポ・おと・テーマカラー</span>
+    </button>
   </div>
 </div>
 
-<div id="app">
+<!-- プレイヤー選択画面 -->
+<div id="sCharSelect" class="screen pad">
+  <h2>プレイヤーをえらんでね</h2>
+  <div id="accountList" style="width:100%;display:flex;flex-direction:column;gap:10px;max-height:55dvh;overflow-y:auto"></div>
+  <button id="toNewCharBtn" style="--k1:var(--p1);--k2:var(--p2);--k3:var(--p3);width:100%">＋ あたらしいキャラクターをつくる</button>
+</div>
 
-  <!-- START画面 -->
-  <div class="screen on" id="sStart" role="button" aria-label="タッチしてスタート" tabindex="0">
-    <div class="start-prompt">がめんをタッチしてスタート♪</div>
-  </div>
+<!-- 新規キャラ：アイコン選択画面 -->
+<div id="sNewCharIcon" class="screen">
+  <h2>好きなアイコンをえらんでね</h2>
+  <div id="iconGrid" class="icon-grid"></div>
+  <button id="nextToNameBtn" style="--k1:var(--p1);--k2:var(--p2);--k3:var(--p3)">つぎへ（なまえ入力）</button>
+</div>
 
-  <!-- TOP画面 -->
-  <div class="screen" id="sTop">
-    <div class="title-box">
-      <div class="title-badge">♪ RHYTHM &amp; SHEET MUSIC ♪</div>
-      <h1>
-        <span class="title-sub">がくふがよめる！</span>
-        <span class="title-main">リズムマスターへの道</span>
-      </h1>
+<!-- 新規キャラ：名前入力画面 -->
+<div id="sNewCharName" class="screen pad">
+  <h2>なまえをいれてね</h2>
+  <div class="panel">
+    <div class="img-load-frame" style="width:96px;height:96px;border-radius:18px;">
+      <span class="img-loading-text">読み込み中…</span>
+      <img id="selectedIconPreview" src="icon/char01.png" alt="選択中のアイコン" style="width:100%;height:100%;object-fit:contain;">
     </div>
+    <input type="text" id="newNickname" placeholder="なまえ（例：ゆうすけ）" maxlength="12" style="width:100%;padding:12px;font-size:20px;border-radius:12px;border:2px solid var(--a2);text-align:center">
+    <button id="createAccBtn" style="--k1:var(--p1);--k2:var(--p2);--k3:var(--p3);width:100%">このなまえではじめる！</button>
+  </div>
+</div>
 
-    <!-- プレイヤー表示・選択エリア -->
-    <div id="topPlayerDisplay" class="top-player-display unselected" role="button" tabindex="0">
-      <img id="topPlayerIconImg" src="icon/char01.png" alt="プレイヤーアイコン">
-      <div class="top-player-info">
-        <div id="topPlayerStatusBadge" class="player-badge">タップしてえらぼう！</div>
-        <div id="topPlayerNameTxt">プレイヤー未選択</div>
-        <div id="topPlayerHintTxt" class="player-hint">※ストーリー・練習にはプレイヤー選択が必要です</div>
+<!-- ストーリーモード：章選択画面 -->
+<div id="sStoryChapters" class="screen fixed-header-screen">
+  <div class="sticky-screen-header">
+    <h2>📖 章をえらんでね</h2>
+  </div>
+  <div id="chapterList" class="scroll-list-area"></div>
+</div>
+
+<!-- ストーリーモード：ステージ選択マップ画面 -->
+<div id="sStoryMap" class="screen pad">
+  <h2 id="mapChapterTitle">第1章 〜エリック・サティ〜</h2>
+
+  <div class="story-map-container">
+    <div id="bossNode" class="map-boss-node locked">
+      <div class="img-load-frame map-boss-img-wrap">
+        <span class="img-loading-text">読み込み中…</span>
+        <img id="mapBossIcon" src="" alt="ボス作曲家">
       </div>
-      <div class="top-player-arrow">›</div>
+      <div id="bossNodeLabel">⚔️ ボスバトルに挑戦する！（テスト開放中）</div>
     </div>
 
-    <!-- メインメニュー -->
-    <div class="menu-stack">
-      <button class="big menu-btn" id="goQuest">
-        <span class="menu-num">01</span>
-        <span class="menu-label">ストーリーモード</span>
-        <span class="menu-sub">作曲家とリズム＆曲あて冒険</span>
-      </button>
-      <button class="big menu-btn" id="goPrac">
-        <span class="menu-num">02</span>
-        <span class="menu-label">練習モード</span>
-        <span class="menu-sub">音符・休符をじっくりトレーニング</span>
-      </button>
-      <button class="big menu-btn" id="goSet">
-        <span class="menu-num">03</span>
-        <span class="menu-label">設定</span>
-        <span class="menu-sub">テンポ・音量・カラーテーマ</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- 章（作曲家）選択画面：上部固定ヘッダー＋4章表示スクロール -->
-  <div class="screen fixed-header-screen" id="sStoryChapters">
-    <div class="sticky-screen-header">
-      <h2>📖 章をえらんでね</h2>
-    </div>
-    <div id="chapterList" class="scroll-list-area"></div>
-  </div>
-
-  <!-- ステージ選択マップ画面：スマホ縦画面いっぱい活用 -->
-  <div class="screen pad" id="sStoryMap">
-    <h2 id="mapChapterTitle">第1章 〜ベートーヴェン〜</h2>
-    <div class="story-map-container">
-      <div id="bossNode" class="map-boss-node locked">
-        <img id="mapBossIcon" src="" alt="作曲家">
-        <span id="bossNodeLabel">🔒 3ステージクリアで開放</span>
-      </div>
-      <div class="map-stages-section">
-        <div class="map-stages-guide">80点以上でクリア！3つそろえてボスへ挑戦</div>
-        <div class="map-stages-row">
-          <div class="map-stage-node" data-stage="0">
-            <div class="stage-star-badge">⭐ <span id="starScore0">0</span>点</div>
-            <div class="stage-circle">ステージ<br>1</div>
-          </div>
-          <div class="map-stage-node" data-stage="1">
-            <div class="stage-star-badge">⭐ <span id="starScore1">0</span>点</div>
-            <div class="stage-circle">ステージ<br>2</div>
-          </div>
-          <div class="map-stage-node" data-stage="2">
-            <div class="stage-star-badge">⭐ <span id="starScore2">0</span>点</div>
-            <div class="stage-circle">ステージ<br>3</div>
-          </div>
+    <div class="map-stages-section">
+      <div class="map-stages-guide">80点以上でクリア！3つそろえてボスへ挑戦</div>
+      <div class="map-stages-row">
+        <div class="map-stage-node" data-stage="0">
+          <div class="stage-circle">ステージ<br>1</div>
+          <div class="stage-star-badge">★ <span id="starScore0">0</span>点</div>
+        </div>
+        <div class="map-stage-node" data-stage="1">
+          <div class="stage-circle">ステージ<br>2</div>
+          <div class="stage-star-badge">★ <span id="starScore1">0</span>点</div>
+        </div>
+        <div class="map-stage-node" data-stage="2">
+          <div class="stage-circle">ステージ<br>3</div>
+          <div class="stage-star-badge">★ <span id="starScore2">0</span>点</div>
         </div>
       </div>
     </div>
-    <button id="backToChaptersBtn" class="sub-back-btn">← 章のせんたくへ</button>
   </div>
 
-  <!-- ボスバトル（曲あてクイズ）画面：VSなし・作曲家大きく上中段・選択下にプレイヤー -->
-  <div class="screen pad" id="sQuiz">
-    <h2>🎼 ボスバトル！</h2>
-    <div class="quiz-boss-showcase">
+  <button id="backToChaptersBtn" class="sub-back-btn">← 章のせんたくへ</button>
+</div>
+
+<!-- ボスバトル画面（作曲家クイズ） -->
+<div id="sQuiz" class="screen pad">
+  <h2>🎵 作曲家クイズ</h2>
+
+  <div class="quiz-boss-showcase">
+    <div class="img-load-frame quiz-boss-img-wrap">
+      <span class="img-loading-text">読み込み中…</span>
       <img id="quizComposerIcon" src="" alt="作曲家">
-      <div class="quiz-boss-speech">
-        <div id="quizComposerName" class="quiz-boss-name">作曲家</div>
-        <div id="composerMessage" class="quiz-boss-msg">「わしの作った曲はどれかな？ きいて当ててみたまえ！」</div>
-      </div>
     </div>
+    <div class="quiz-boss-speech">
+      <div id="quizComposerName" class="quiz-boss-name"></div>
+      <div id="composerMessage" class="quiz-boss-msg"></div>
+    </div>
+  </div>
 
-    <div id="quizOptionsList" class="quiz-options-stack"></div>
+  <div id="quizOptionsList" class="quiz-options-stack"></div>
 
-    <div class="quiz-player-footer">
+  <div class="quiz-player-footer">
+    <div class="img-load-frame quiz-player-img-wrap">
+      <span class="img-loading-text">読み込み中…</span>
       <img id="quizPlayerIcon" src="icon/char01.png" alt="プレイヤー">
-      <div class="quiz-player-label">
-        <span class="quiz-player-tag">CHALLENGER</span>
-        <span id="quizPlayerName">あなた</span>
-      </div>
-      <button id="backToMapFromQuizBtn" class="mini-gray-btn">← マップへ</button>
     </div>
-  </div>
-
-  <!-- 既存キャラクター選択画面 -->
-  <div class="screen pad" id="sCharSelect" style="gap:12px">
-    <h2>プレイヤーをえらんでね</h2>
-    <div id="accountList" style="display:flex;flex-direction:column;gap:10px;width:100%;align-items:center"></div>
-    <button id="toNewCharBtn" style="width:100%;font-size:18px;padding:14px 20px;background:linear-gradient(180deg,var(--p1),var(--p2))">＋ 新しいキャラクターを作成</button>
-  </div>
-
-  <!-- 新規キャラクター：アイコン選択画面 -->
-  <div class="screen pad" id="sNewCharIcon" style="gap:10px">
-    <h2>じぶんのキャラクターをえらんでね！</h2>
-    <div style="font-size:14px;color:#665">アイコンをタップしてえらぼう！</div>
-    <div class="icon-grid" id="iconGrid"></div>
-    <button id="nextToNameBtn">このキャラに決定！ →</button>
-  </div>
-
-  <!-- 新規キャラクター：ニックネーム入力画面 -->
-  <div class="screen pad" id="sNewCharName" style="gap:16px">
-    <h2>ニックネームを決めてね！</h2>
-    <div style="display:flex;align-items:center;gap:12px;background:#fff;padding:16px 20px;border-radius:18px;box-shadow:0 3px 10px rgba(0,0,0,0.08);width:100%">
-      <img id="selectedIconPreview" src="icon/char01.png" style="width:64px;height:64px;object-fit:contain">
-      <input type="text" id="newNickname" placeholder="なまえ（例: たろう）" maxlength="10" style="flex:1;min-width:0;padding:12px;font-size:20px;border-radius:12px;border:2px solid #ccc">
+    <div class="quiz-player-label">
+      <span class="quiz-player-tag">PLAYER</span>
+      <span id="quizPlayerName">あなた</span>
     </div>
-    <button id="createAccBtn" style="width:100%;padding:14px 24px;font-size:22px;">プレイヤーをけってい！ ✨</button>
-  </div>
-
-  <!-- 設定画面 -->
-  <div class="screen pad" id="sSet" style="gap:8px"><div class="panel">
-    <h2>設定</h2>
-    <div class="row">
-      <label class="opt">テンポ(BPM)：<select id="bpmSel"></select></label>
-      <label class="opt"><input type="checkbox" id="judgeOpt" checked>得点を表示</label>
-    </div>
-    <div class="setrow"><div class="nm">テーマ</div><div class="ctl" id="themeTg" style="justify-content:center"></div></div>
-    <div class="setrow"><div class="nm">メトロノーム音量</div><div class="ctl"><button class="st" id="volMm">−</button><input type="range" id="volM" min="0" max="100" step="1" value="50"><button class="st" id="volMp">＋</button><span class="vv"><span id="volMv">50</span></span></div></div>
-    <div class="setrow"><div class="nm">ピアノ音量</div><div class="ctl"><button class="st" id="volTm">−</button><input type="range" id="volT" min="0" max="100" step="1" value="50"><button class="st" id="volTp">＋</button><span class="vv"><span id="volTv">50</span></span></div></div>
-    <div class="setrow"><div class="nm">タイミング補正</div><div class="ctl"><button class="st" id="ofsM">−</button><input type="range" id="ofsS" min="-100" max="200" step="1" value="0"><button class="st" id="ofsP">＋</button><span class="vv"><span id="volV">0</span>ms</span></div></div>
-    <div class="row">
-      <button class="tg on" id="testM">メトロノーム音テスト</button>
-      <button class="tg on" id="testT">ピアノ音テスト</button>
-    </div>
-  </div></div>
-
-  <!-- 練習モード問題一覧画面：上部固定＋横幅いっぱいスクロール -->
-  <div class="screen fixed-header-screen" id="sPrac">
-    <div class="sticky-screen-header prac-header">
-      <h2>🎵 もんだいを選んでね</h2>
-      <div class="row" id="lvBtns"></div>
-      <div class="opt prac-demo-row">
-        <span>お手本設定</span>
-        <div id="demoTg" style="display:flex; gap:8px;"></div>
-      </div>
-    </div>
-    <div id="problemListContainer" class="scroll-list-area"></div>
-  </div>
-
-  <!-- ゲームプレイ画面 -->
-  <div class="screen pad" id="sGame">
-    <div id="score"><svg id="svg" viewBox="0 0 800 172"></svg></div>
-    <div id="msg"></div>
-    <div id="count"></div>
-    <div id="result" style="display:none"><div id="bigScore"></div><div id="detail"></div></div>
-    <div id="tapArea"><button id="tap" class="off">TAP</button><div id="fx"></div></div>
-    <div class="row" id="playBtns" style="display:none">
-      <button id="demoBtn">▶ お手本</button>
-      <button id="mineBtn">▶ 自分の再生</button>
-    </div>
-    <div class="row" id="nextBtns" style="display:none">
-      <button id="againBtn">もう一度</button>
-      <button id="nextBtn">つぎのもんだい</button>
-    </div>
+    <button id="backToMapFromQuizBtn" class="mini-gray-btn">← マップへ</button>
   </div>
 </div>
 
-<!-- 外部JSの読み込み -->
+<!-- 練習モード：問題選択画面 -->
+<div id="sPrac" class="screen fixed-header-screen">
+  <div class="sticky-screen-header prac-header">
+    <h2>れんしゅう</h2>
+    <div id="lvBtns" class="row" style="width:100%"></div>
+    <div class="row prac-demo-row">
+      <span>お手本</span>
+      <div id="demoTg" class="row"></div>
+    </div>
+  </div>
+
+  <div id="problemListContainer" class="scroll-list-area"></div>
+</div>
+
+<!-- 設定画面 -->
+<div id="sSet" class="screen pad">
+  <h2>せってい</h2>
+  <div class="panel">
+    <div class="setrow"><div>テーマカラー</div><div id="themeTg" class="row" style="justify-content:flex-start"></div></div>
+    <div class="setrow"><div>テンポ（BPM）</div><div class="ctl"><select id="bpmSel"></select></div></div>
+    <div class="setrow"><div>メトロノームの音</div><div class="ctl"><input id="volM" type="range" min="0" max="100" value="50"><span id="volMv" class="vv">50</span></div></div>
+    <div class="setrow"><div>タップの音</div><div class="ctl"><input id="volT" type="range" min="0" max="100" value="50"><span id="volTv" class="vv">50</span></div></div>
+    <div class="setrow"><div>タイミング微調整（ms）</div><div class="ctl"><input id="ofsS" type="range" min="-150" max="150" step="5" value="0"><span id="ofsV" class="vv">0</span></div></div>
+    <div class="setrow"><div>判定テスト音</div><div class="ctl" style="gap:10px">
+      <button type="button" onclick="playTestBuzzer('correct')" style="font-size:15px;padding:8px 14px;background:#2eaa5a;box-shadow:0 3px 0 #1e7a3e">⭕ 正解音</button>
+      <button type="button" onclick="playTestBuzzer('wrong')" style="font-size:15px;padding:8px 14px;background:#e2574c;box-shadow:0 3px 0 #b33">❌ 不正解音</button>
+    </div></div>
+  </div>
+</div>
+
+<!-- ゲームプレイ画面 -->
+<div id="sGame" class="screen pad">
+  <div id="score"><svg id="svg" viewBox="0 0 800 172"></svg></div>
+  <div id="msg"></div>
+  <div id="count"></div>
+  <div id="result" style="display:none"><div id="bigScore"></div><div id="detail"></div></div>
+  <div id="tapArea"><div id="fx"></div><button id="tap" class="off">タップ</button></div>
+  <div id="playBtns" class="row" style="display:none"><button id="demoBtn">お手本</button><button id="mineBtn">じぶん</button></div>
+  <div id="nextBtns" class="row" style="display:none"><button id="againBtn">もういちど</button><button id="nextBtn">つぎのもんだい</button><label class="opt"><input id="judgeOpt" type="checkbox" checked>採点</label></div>
+</div>
+
+<button id="profileBtn">👤</button>
+<button id="back" style="display:none">← トップへ</button>
+
+<div id="popup" style="display:none"><div class="card">
+  <div class="pt">準備OK！</div>
+  <div id="popSub" class="ps"></div>
+  <button id="popBtn">スタート！</button>
+</div></div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 </body>
 </html>
