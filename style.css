@@ -71,6 +71,54 @@ body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
 .screen.on{display:flex}
 .pad{padding-top:6.5dvh}
 
+/* ===== イラスト読み込み中表示 ===== */
+.img-load-frame{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fffaf0;
+  overflow: hidden;
+}
+.img-load-frame.full-frame{
+  width: 100%;
+  height: 100%;
+}
+.img-load-frame.mini-icon-frame{
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+.img-loading-text{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: clamp(11px, 3vw, 15px);
+  font-weight: 800;
+  color: #777;
+  background: rgba(255, 250, 240, 0.92);
+  padding: 4px;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.img-load-frame.is-loaded .img-loading-text{
+  opacity: 0;
+  visibility: hidden;
+}
+.img-load-frame img{
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.img-load-frame.is-loaded img,
+.img-load-frame img.is-loaded{
+  opacity: 1;
+}
+
 /* ===== 上部固定ヘッダー＋スクロールリスト共通レイアウト ===== */
 .screen.fixed-header-screen{
   overflow: hidden;
@@ -263,13 +311,17 @@ button:disabled{opacity:.88;filter:saturate(.8)}
   transition: transform .12s, box-shadow .12s;
 }
 .top-player-display:active{transform:scale(0.98)}
-.top-player-display img{
+.top-player-display .img-load-frame{
   width: clamp(64px, 18vw, 100px) !important;
   height: clamp(64px, 18vw, 100px) !important;
-  object-fit: contain;
   flex-shrink: 0;
   background: #fff9e6;
   border-radius: 18px;
+}
+.top-player-display img{
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
   padding: 4px;
 }
 .top-player-info{
@@ -380,15 +432,19 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
 }
 .chapter-card:active{transform:scale(0.985)}
 .chapter-card:hover{border-color:var(--a2)}
-.chapter-card-img{
+.chapter-card-img-wrap{
   width: clamp(112px, 31vw, 152px);
   height: clamp(112px, 31vw, 152px);
-  object-fit: contain;
   flex-shrink: 0;
   border-radius: 18px;
   background: #fffaf0;
-  padding: 3px;
   box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.chapter-card-img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 3px;
 }
 .chapter-card-body{
   flex: 1;
@@ -479,14 +535,17 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
 }
 .map-boss-node.locked{opacity:0.85;border-color:#ccc;background:#f7f7f7;cursor:not-allowed}
 .map-boss-node.unlocked:active{transform:scale(0.98)}
-.map-boss-node img{
+.map-boss-img-wrap{
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 100%;
-  object-fit: contain;
   border-radius: 18px;
   background: #fff;
+}
+.map-boss-node img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   padding: 4px;
 }
 #bossNodeLabel{
@@ -588,14 +647,17 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   justify-content: space-between;
   gap: 0.8dvh;
 }
-.quiz-boss-showcase img{
+.quiz-boss-img-wrap{
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 100%;
-  object-fit: contain;
   border-radius: 18px;
   background: #fffaf0;
+}
+.quiz-boss-showcase img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   padding: 4px;
 }
 .quiz-boss-speech{
@@ -674,14 +736,18 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   gap: 2.5vw;
   box-shadow: 0 4px 12px rgba(0,0,0,.08);
 }
-.quiz-player-footer img{
+.quiz-player-img-wrap{
   width: clamp(56px, 15vw, 76px);
   height: clamp(56px, 15vw, 76px);
-  object-fit: contain;
   border-radius: 14px;
   background: #fff9e6;
-  padding: 3px;
   flex-shrink: 0;
+}
+.quiz-player-footer img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 3px;
 }
 .quiz-player-label{
   flex: 1;
@@ -838,7 +904,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
 #sNewCharIcon .icon-item {
   min-width: 0;
   aspect-ratio: 1 / 1;
-  padding: 5px;
+  padding: 4px;
   border-radius: 16px;
 }
 #sNewCharIcon .icon-item img { width: 100%; height: 100%; }
