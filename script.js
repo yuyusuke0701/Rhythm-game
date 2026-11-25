@@ -572,7 +572,7 @@ function stopTopBgm(){
   topBgm.pause();
   topBgm.currentTime = 0;
 }
-function playStartTapSound(){
+function playNavSound(){
   try {
     startTapSound.currentTime = 0;
     var p = startTapSound.play();
@@ -583,7 +583,7 @@ function enterFromStart(){
   var startScreen = $("sStart");
   if(!startScreen || startScreen.dataset.leaving === "1") return;
   startScreen.dataset.leaving = "1";
-  playStartTapSound();
+  playNavSound();
   startScreen.classList.add("leaving");
   setTimeout(function(){
     show("sTop");
@@ -619,6 +619,7 @@ function show(id){
 }
 
 function goBackAction(){
+  playNavSound();
   if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
   if($("sGame") && $("sGame").classList.contains("on")){
     state = "idle"; canTap = false;
@@ -743,7 +744,7 @@ function startCal(){
   else if(r && r.then) r.then(function(){ setTimeout(go, 150); }, go);
   calTimer = setTimeout(go, 1500);
 }
-function calTap(at){
+  function calTap(at){
   if(!cal) return;
   var k = Math.round((at - cal.t0) / cal.beat);
   if(k < 0) return;
@@ -1002,11 +1003,12 @@ if($("mineBtn")){
   });
 }
 if($("againBtn")){
-  $("againBtn").addEventListener("click", function(){ if(guard()) startRun(); });
+  $("againBtn").addEventListener("click", function(){ if(guard()){ playNavSound(); startRun(); } });
 }
 if($("nextBtn")){
   $("nextBtn").addEventListener("click", function(){
     if(!guard()) return;
+    playNavSound();
     if(isStoryPlay){
       openStoryMap(currentChapterIdx);
     } else {
@@ -1035,6 +1037,7 @@ if($("back")) $("back").addEventListener("click", goBackAction);
 if($("popBtn")){
   $("popBtn").addEventListener("click", function(){
     if(state !== "popup") return;
+    playNavSound();
     $("popup").style.display = "none";
     startRun();
   });
@@ -1042,6 +1045,7 @@ if($("popBtn")){
 
 if($("goQuest")){
   $("goQuest").addEventListener("click", function(){
+    playNavSound();
     ensureAudio();
     if(!ensurePlayerSelected("ストーリーモード")) return;
     openStoryChapters();
@@ -1079,6 +1083,7 @@ function openStoryChapters(){
 
   listEl.querySelectorAll(".chapter-card").forEach(card => {
     card.addEventListener("click", function(){
+      playNavSound();
       const chId = parseInt(this.getAttribute("data-chapter"), 10);
       openStoryMap(chId);
     });
@@ -1110,6 +1115,7 @@ function openStoryMap(chapterIdx){
 
   document.querySelectorAll(".map-stage-node").forEach(node => {
     node.onclick = function(){
+      playNavSound();
       let stageNum = parseInt(this.getAttribute("data-stage"), 10);
       startStoryStage(chapterIdx, stageNum);
     };
@@ -1120,12 +1126,14 @@ function openStoryMap(chapterIdx){
       alert("ステージ1〜3をすべて80点以上でクリアすると挑戦できるよ！");
       return;
     }
+    playNavSound();
     startComposerQuiz(chapterIdx);
   };
 }
 
 if($("backToChaptersBtn")){
   $("backToChaptersBtn").addEventListener("click", function(){
+    playNavSound();
     openStoryChapters();
   });
 }
@@ -1205,6 +1213,7 @@ function startComposerQuiz(chapterIdx){
 
 if($("backToMapFromQuizBtn")){
   $("backToMapFromQuizBtn").addEventListener("click", function(){
+    playNavSound();
     if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
     openStoryMap(currentChapterIdx);
   });
@@ -1239,6 +1248,7 @@ function renderProblemList(lvlIdx){
     playBtn.textContent = "えらぶ →";
     playBtn.addEventListener("click", function(e){
       e.stopPropagation();
+      playNavSound();
       ensureAudio();
       isStoryPlay = false;
       loadSelectedProblem(lvlIdx, idx);
@@ -1257,6 +1267,7 @@ function renderProblemList(lvlIdx){
     card.appendChild(svgWrap);
 
     card.addEventListener("click", function(){
+      playNavSound();
       ensureAudio();
       isStoryPlay = false;
       loadSelectedProblem(lvlIdx, idx);
@@ -1330,6 +1341,7 @@ function renderAccountList(){
   list.querySelectorAll(".account-card").forEach(card => {
     card.addEventListener("click", function(e){
       if(e.target.classList.contains("del-acc-btn")) return;
+      playNavSound();
       const id = this.getAttribute("data-id");
       currentAccount = accounts.find(a => a.id === id) || null;
       saveAccountsToLocal();
@@ -1355,10 +1367,14 @@ function renderAccountList(){
 }
 
 if($("topPlayerDisplay")){
-  $("topPlayerDisplay").addEventListener("click", openPlayerSelectScreen);
+  $("topPlayerDisplay").addEventListener("click", function(){
+    playNavSound();
+    openPlayerSelectScreen();
+  });
   $("topPlayerDisplay").addEventListener("keydown", function(e){
     if(e.key === "Enter" || e.key === " "){
       e.preventDefault();
+      playNavSound();
       openPlayerSelectScreen();
     }
   });
@@ -1366,6 +1382,7 @@ if($("topPlayerDisplay")){
 
 if($("toNewCharBtn")){
   $("toNewCharBtn").addEventListener("click", function(){
+    playNavSound();
     selectedNewIcon = ICONS[0];
     renderIconGrid();
     show("sNewCharIcon");
@@ -1374,6 +1391,7 @@ if($("toNewCharBtn")){
 
 if($("nextToNameBtn")){
   $("nextToNameBtn").addEventListener("click", function(){
+    playNavSound();
     setImgSrcWithLoading($("selectedIconPreview"), selectedNewIcon);
     $("newNickname").value = "";
     show("sNewCharName");
@@ -1384,6 +1402,7 @@ if($("createAccBtn")){
   $("createAccBtn").addEventListener("click", function(){
     const nick = $("newNickname").value.trim();
     if(!nick){ alert("なまえを入力してね！"); return; }
+    playNavSound();
 
     const newAcc = {
       id: 'user_' + Math.random().toString(36).substring(2, 9),
@@ -1460,6 +1479,7 @@ if($("bpmSel")){
 
 if($("goPrac")){
   $("goPrac").addEventListener("click", function(){
+    playNavSound();
     ensureAudio();
     if(!ensurePlayerSelected("練習モード")) return;
     makePracticeLevelToggles();
@@ -1470,13 +1490,17 @@ if($("goPrac")){
 
 if($("goSet")){
   $("goSet").addEventListener("click", function(){
+    playNavSound();
     ensureAudio();
     show("sSet");
   });
 }
 
 if($("profileBtn")){
-  $("profileBtn").addEventListener("click", openPlayerSelectScreen);
+  $("profileBtn").addEventListener("click", function(){
+    playNavSound();
+    openPlayerSelectScreen();
+  });
 }
 
 function initStartScreen(){
