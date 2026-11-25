@@ -237,7 +237,7 @@ function click(t, accent){
 function metro(base){ for(var i=0;i<TOTAL;i++) click(base + i*BEAT, i%4===0); }
 
 const MUSIC_DATABASE = [
-  { composer: "エリック・サティ", title: "ジムノペディ", file: "Sound/Music/サティジムノペディ.mp3" },
+  { composer: "エリック・サティ", title: "ジムノペディ", file: "Sound/Music/サティ_ジムノペディ.mp3" },
   { composer: "エリック・サティ", title: "ジュ・トゥ・ヴ", file: "Sound/Music/サティ_ジュ・トゥ・ヴ.mp3" },
   { composer: "ロベルト・シューマン", title: "クライスレリアーナ", file: "Sound/Music/シューマン_クライスレリアーナ.mp3" },
   { composer: "ロベルト・シューマン", title: "トロイメライ(『子供の情景』より)", file: "Sound/Music/シューマン_トロイメライ.mp3" },
