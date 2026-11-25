@@ -17,6 +17,65 @@ let selectedNewIcon = ICONS[0];
 
 var $ = function(id){ return document.getElementById(id); };
 
+function bindImageLoadingStates(root){
+  const scope = root || document;
+  scope.querySelectorAll("img").forEach(function(img){
+    const frame = img.closest(".img-load-frame");
+    const markLoaded = function(){
+      img.classList.add("is-loaded");
+      if(frame) frame.classList.add("is-loaded");
+    };
+    const markError = function(){
+      img.classList.add("is-loaded");
+      if(frame){
+        frame.classList.add("is-loaded");
+        const badge = frame.querySelector(".img-loading-text");
+        if(badge) badge.textContent = "表示エラー";
+      }
+    };
+
+    if(img.complete && img.naturalWidth > 0){
+      markLoaded();
+    } else {
+      img.classList.remove("is-loaded");
+      if(frame){
+        frame.classList.remove("is-loaded");
+        const badge = frame.querySelector(".img-loading-text");
+        if(badge) badge.textContent = "読み込み中…";
+      }
+      img.addEventListener("load", markLoaded, { once: true });
+      img.addEventListener("error", markError, { once: true });
+    }
+  });
+}
+
+function setImgSrcWithLoading(imgEl, src){
+  if(!imgEl) return;
+  const frame = imgEl.closest(".img-load-frame");
+  imgEl.classList.remove("is-loaded");
+  if(frame){
+    frame.classList.remove("is-loaded");
+    const badge = frame.querySelector(".img-loading-text");
+    if(badge) badge.textContent = "読み込み中…";
+  }
+  imgEl.onload = function(){
+    imgEl.classList.add("is-loaded");
+    if(frame) frame.classList.add("is-loaded");
+  };
+  imgEl.onerror = function(){
+    imgEl.classList.add("is-loaded");
+    if(frame){
+      frame.classList.add("is-loaded");
+      const badge = frame.querySelector(".img-loading-text");
+      if(badge) badge.textContent = "表示エラー";
+    }
+  };
+  imgEl.src = src;
+  if(imgEl.complete && imgEl.naturalWidth > 0){
+    imgEl.onload();
+  }
+}
+
 function loadAccounts(){
   try {
     accounts = JSON.parse(localStorage.getItem("rhythm_accounts") || "[]");
@@ -56,14 +115,14 @@ function updateProfileBtnUI(){
     const iconSrc = currentAccount.icon || ICONS[0];
     const nameTxt = currentAccount.nickname || "プレーヤー";
     if(btn) btn.innerHTML = `<img src="${iconSrc}" style="width:20px;height:20px;vertical-align:middle;object-fit:contain"> ${nameTxt}`;
-    if(topDisplayImg) topDisplayImg.src = iconSrc;
+    if(topDisplayImg) setImgSrcWithLoading(topDisplayImg, iconSrc);
     if(topDisplayName) topDisplayName.textContent = nameTxt;
     if(topBadge) topBadge.textContent = "選択中のプレイヤー（タップで変更）";
     if(topHint) topHint.textContent = "プレイヤーの切り替えや新規作成ができます";
     if(topCard) topCard.classList.remove("unselected");
   } else {
     if(btn) btn.innerHTML = `👤 プレイヤー未選択`;
-    if(topDisplayImg) topDisplayImg.src = ICONS[0];
+    if(topDisplayImg) setImgSrcWithLoading(topDisplayImg, ICONS[0]);
     if(topDisplayName) topDisplayName.textContent = "プレイヤー未選択";
     if(topBadge) topBadge.textContent = "！まだえらばれていません";
     if(topHint) topHint.textContent = "ここをタップしてプレイヤーをえらんでね";
@@ -1001,7 +1060,10 @@ function openStoryChapters(){
     let clearedCount = (s0 >= 80 ? 1 : 0) + (s1 >= 80 ? 1 : 0) + (s2 >= 80 ? 1 : 0);
     return `
       <div class="chapter-card" data-chapter="${ch.id}">
-        <img class="chapter-card-img" src="${ch.icon}" alt="${ch.composer}">
+        <div class="img-load-frame chapter-card-img-wrap">
+          <span class="img-loading-text">読み込み中…</span>
+          <img class="chapter-card-img" src="${ch.icon}" alt="${ch.composer}">
+        </div>
         <div class="chapter-card-body">
           <div class="chapter-card-title">
             <span class="chap-num-badge">${ch.chapNum}</span>
@@ -1013,6 +1075,8 @@ function openStoryChapters(){
       </div>
     `;
   }).join("");
+
+  bindImageLoadingStates(listEl);
 
   listEl.querySelectorAll(".chapter-card").forEach(card => {
     card.addEventListener("click", function(){
@@ -1038,18 +1102,13 @@ function openStoryMap(chapterIdx){
 
   const bossNode = $("bossNode");
   const bossIcon = $("mapBossIcon");
-  bossIcon.src = chapter.icon;
+  setImgSrcWithLoading(bossIcon, chapter.icon);
 
-  let allCleared = (s0 >= 80 && s1 >= 80 && s2 >= 80);
-  if(allCleared){
-    bossNode.classList.remove("locked");
-    bossNode.classList.add("unlocked");
-    $("bossNodeLabel").textContent = "✨ ボスバトルに挑戦する！";
-  } else {
-    bossNode.classList.remove("unlocked");
-    bossNode.classList.add("locked");
-    $("bossNodeLabel").textContent = "🔒 3ステージクリアでボス開放";
-  }
+  // テスト段階のため、いつでもボスに挑戦できるように開放
+  const canChallengeBoss = true;
+  bossNode.classList.remove("locked");
+  bossNode.classList.add("unlocked");
+  $("bossNodeLabel").textContent = "⚔️ ボスバトルに挑戦する！（テスト開放中）";
 
   document.querySelectorAll(".map-stage-node").forEach(node => {
     node.onclick = function(){
@@ -1059,7 +1118,7 @@ function openStoryMap(chapterIdx){
   });
 
   bossNode.onclick = function(){
-    if(!allCleared){
+    if(!canChallengeBoss){
       alert("ステージ1〜3をすべて80点以上でクリアすると挑戦できるよ！");
       return;
     }
@@ -1090,9 +1149,9 @@ function startComposerQuiz(chapterIdx){
   const chapter = STORY_CHAPTERS[chapterIdx];
   show("sQuiz");
 
-  $("quizPlayerIcon").src = currentAccount ? currentAccount.icon : ICONS[0];
+  setImgSrcWithLoading($("quizPlayerIcon"), currentAccount ? currentAccount.icon : ICONS[0]);
   if($("quizPlayerName")) $("quizPlayerName").textContent = currentAccount ? currentAccount.nickname : "あなた";
-  $("quizComposerIcon").src = chapter.icon;
+  setImgSrcWithLoading($("quizComposerIcon"), chapter.icon);
   $("quizComposerName").textContent = chapter.composer;
   $("composerMessage").textContent = `「わし（${chapter.composer}）の曲を当ててみたまえ！」`;
 
@@ -1233,9 +1292,14 @@ function renderIconGrid(){
   if(!grid) return;
   grid.innerHTML = ICONS.map(iconPath => `
     <div class="icon-item ${iconPath === selectedNewIcon ? 'selected' : ''}" data-icon="${iconPath}">
-      <img src="${iconPath}">
+      <div class="img-load-frame full-frame">
+        <span class="img-loading-text">読み込み中…</span>
+        <img src="${iconPath}">
+      </div>
     </div>
   `).join("");
+
+  bindImageLoadingStates(grid);
 
   grid.querySelectorAll(".icon-item").forEach(el => {
     el.addEventListener("click", function(){
@@ -1251,7 +1315,10 @@ function renderAccountList(){
   list.innerHTML = accounts.map(acc => `
     <div class="account-card ${currentAccount && currentAccount.id === acc.id ? 'active' : ''}" data-id="${acc.id}">
       <div style="display:flex;align-items:center;gap:12px;font-size:18px">
-        <img src="${acc.icon}" style="width:48px;height:48px;object-fit:contain">
+        <div class="img-load-frame mini-icon-frame">
+          <span class="img-loading-text">読込中…</span>
+          <img src="${acc.icon}" style="width:48px;height:48px;object-fit:contain">
+        </div>
         <span style="font-weight:bold">${acc.nickname}</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -1259,6 +1326,8 @@ function renderAccountList(){
       </div>
     </div>
   `).join("");
+
+  bindImageLoadingStates(list);
 
   list.querySelectorAll(".account-card").forEach(card => {
     card.addEventListener("click", function(e){
@@ -1307,7 +1376,7 @@ if($("toNewCharBtn")){
 
 if($("nextToNameBtn")){
   $("nextToNameBtn").addEventListener("click", function(){
-    $("selectedIconPreview").src = selectedNewIcon;
+    setImgSrcWithLoading($("selectedIconPreview"), selectedNewIcon);
     $("newNickname").value = "";
     show("sNewCharName");
   });
@@ -1413,8 +1482,12 @@ if($("profileBtn")){
 }
 
 if(document.readyState === "loading"){
-  document.addEventListener("DOMContentLoaded", loadAccounts);
+  document.addEventListener("DOMContentLoaded", function(){
+    loadAccounts();
+    bindImageLoadingStates(document);
+  });
 } else {
   loadAccounts();
+  bindImageLoadingStates(document);
 }
 })();
