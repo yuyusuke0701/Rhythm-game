@@ -584,7 +584,6 @@ function enterFromStart(){
   if(!startScreen || startScreen.dataset.leaving === "1") return;
   startScreen.dataset.leaving = "1";
   playStartTapSound();
-  if($("sTop")) $("sTop").classList.add("on");
   startScreen.classList.add("leaving");
   setTimeout(function(){
     show("sTop");
