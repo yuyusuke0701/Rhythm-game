@@ -1480,13 +1480,25 @@ if($("profileBtn")){
   $("profileBtn").addEventListener("click", openPlayerSelectScreen);
 }
 
+function initStartScreen(){
+  var hasActiveScreen = ["sTop","sSet","sPrac","sGame","sStoryChapters","sStoryMap","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].some(function(id){
+    var elScreen = $(id);
+    return elScreen && elScreen.classList.contains("on");
+  });
+  if(!hasActiveScreen && $("sStart")){
+    $("sStart").classList.add("on");
+  }
+}
+
 if(document.readyState === "loading"){
   document.addEventListener("DOMContentLoaded", function(){
     loadAccounts();
     bindImageLoadingStates(document);
+    initStartScreen();
   });
 } else {
   loadAccounts();
   bindImageLoadingStates(document);
+  initStartScreen();
 }
 })();
