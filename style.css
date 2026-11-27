@@ -54,6 +54,12 @@ html, body {
   #sStart.leaving {
     transform: translateX(-50%) scale(1.015) !important;
   }
+  .chapter-intro-overlay,
+  .quiz-result-overlay {
+    width: calc(100dvh * 0.5625) !important;
+    left: 50% !important;
+    transform: translateX(-50%);
+  }
 }
 
 /* ===== テーマカラー ===== */
@@ -130,7 +136,7 @@ body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
   width: 100%;
   flex-shrink: 0;
   padding-top: 1.4dvh;
-  padding-left: 28vw;
+  padding-left: 34vw;
   padding-right: 1vw;
   min-height: 6.5dvh;
   display: flex;
@@ -142,7 +148,7 @@ body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
 .sticky-screen-header h2{
   width: 100%;
   text-align: left;
-  font-size: clamp(22px, 6vw, 32px);
+  font-size: clamp(20px, 5.4vw, 30px);
   font-weight: 900;
 }
 .sticky-screen-header.prac-header{
@@ -150,7 +156,7 @@ body[data-theme="3"]{--bg1:#eaf6ff;--bg2:#d2e9fb;--title:#3c7fc0;
   padding-right: 0;
 }
 .sticky-screen-header.prac-header h2{
-  padding-left: 28vw;
+  padding-left: 34vw;
   text-align: left;
 }
 .prac-demo-row{
@@ -388,8 +394,8 @@ button:disabled{opacity:.88;filter:saturate(.8)}
   left: 3vw;
   top: 1.4dvh;
   z-index: 30;
-  font-size: clamp(16px, 4.2vw, 22px);
-  padding: 1dvh 3.5vw;
+  font-size: clamp(14px, 3.7vw, 20px);
+  padding: 0.9dvh 3vw;
   border-radius: 14px;
   box-shadow: 0 4px 0 var(--k3), 0 6px 12px rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.5);
   white-space: nowrap;
@@ -494,7 +500,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
 #sStoryMap{
   justify-content: space-between;
   padding-top: 6.8dvh;
-  padding-bottom: 1.8dvh;
+  padding-bottom: 2dvh;
   gap: 1.2dvh;
 }
 #sStoryMap h2{
@@ -508,12 +514,12 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 1.6dvh;
+  gap: 1.8dvh;
   width: 100%;
   flex: 1 1 auto;
   min-height: 0;
   background: #fff;
-  padding: 1.8dvh 3.5vw;
+  padding: 2dvh 3.5vw;
   border-radius: 24px;
   box-shadow: 0 6px 18px rgba(0,0,0,.1);
 }
@@ -584,7 +590,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   border: 2px solid #ffe4b5;
   border-radius: 18px;
   padding: 1.2dvh 1.5vw;
-  transition: transform 0.1s;
+  transition: transform 0.1s, background-color 0.25s, border-color 0.25s;
 }
 .map-stage-node:active{transform:scale(0.96)}
 .stage-circle{
@@ -602,6 +608,21 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   font-size: clamp(16px, 4.3vw, 22px);
   line-height: 1.2;
   text-align: center;
+  transition: background 0.25s, box-shadow 0.25s, transform 0.2s;
+}
+.map-stage-node.cleared{
+  background: #eefaf2;
+  border-color: #34b365;
+  box-shadow: 0 4px 12px rgba(52,179,101,.18);
+}
+.map-stage-node.cleared .stage-circle{
+  background: linear-gradient(135deg, #4cd97b, #1e9e4c);
+  box-shadow: 0 5px 14px rgba(30,158,76,.35);
+}
+.map-stage-node.cleared .stage-star-badge{
+  background: #2eaa5a;
+  color: #fff;
+  border-color: #2eaa5a;
 }
 .stage-star-badge{
   font-size: clamp(14px, 3.8vw, 18px);
@@ -611,15 +632,135 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   padding: 3px 10px;
   border-radius: 999px;
   border: 1px solid #ffe0b2;
+  transition: background-color 0.25s, color 0.25s, border-color 0.25s;
 }
-.sub-back-btn{
+
+/* ===== 章イントロ（暗転＆フェードイン／フェードアウト演出） ===== */
+.chapter-intro-overlay{
+  display: none;
+  position: fixed;
+  inset: 0;
   width: 100%;
-  font-size: clamp(17px, 4.5vw, 22px);
-  padding: 1.4dvh 4vw;
-  --k1:#a8a8a8;
-  --k2:#8e8e8e;
-  --k3:#6e6e6e;
-  flex-shrink: 0;
+  height: 100dvh;
+  z-index: 120;
+  background: #09090d;
+  opacity: 0;
+  transition: opacity 0.75s ease;
+  align-items: center;
+  justify-content: center;
+  padding: 4dvh 5vw;
+  pointer-events: none;
+}
+.chapter-intro-overlay.visible{
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+.chapter-intro-content{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.2dvh;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.85s ease, transform 0.85s ease;
+}
+.chapter-intro-content.shown{
+  opacity: 1;
+  transform: translateY(0);
+}
+.chapter-intro-title{
+  color: #ffffff;
+  font-size: clamp(22px, 6vw, 34px);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.3;
+  text-shadow: 0 2px 12px rgba(255,255,255,.22);
+}
+.chapter-intro-img-wrap{
+  width: 100%;
+  flex: 1 1 auto;
+  max-height: 54dvh;
+  border-radius: 24px;
+  background: rgba(255,250,240,.08);
+  border: 2px solid rgba(255,255,255,.2);
+}
+.chapter-intro-img-wrap img{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+.chapter-intro-years{
+  color: #f3e8d2;
+  font-size: clamp(19px, 5vw, 28px);
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(0,0,0,.65);
+}
+
+/* ===== クイズ結果オーバーレイ（正解・不正解時のゆっくり遷移演出） ===== */
+.quiz-result-overlay{
+  display: none;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  z-index: 125;
+  background: rgba(0, 0, 0, 0.58);
+  opacity: 0;
+  transition: opacity 0.55s ease;
+  align-items: center;
+  justify-content: center;
+  padding: 3dvh 5vw;
+  pointer-events: none;
+}
+.quiz-result-overlay.visible{
+  display: flex;
+  opacity: 1;
+  pointer-events: auto;
+}
+.quiz-result-card{
+  width: 100%;
+  background: #fff;
+  border-radius: 26px;
+  padding: 2.8dvh 5vw;
+  box-shadow: 0 14px 36px rgba(0,0,0,.35);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6dvh;
+  text-align: center;
+  transform: scale(0.95);
+  transition: transform 0.45s ease;
+}
+.quiz-result-overlay.visible .quiz-result-card{
+  transform: scale(1);
+}
+.quiz-result-badge{
+  font-size: clamp(22px, 6vw, 32px);
+  font-weight: 900;
+  padding: 6px 20px;
+  border-radius: 999px;
+}
+.quiz-result-card.correct .quiz-result-badge{
+  background: #e3f9eb;
+  color: #1c8c46;
+}
+.quiz-result-card.wrong .quiz-result-badge{
+  background: #fdeceb;
+  color: #cf3b2e;
+}
+.quiz-result-text{
+  font-size: clamp(17px, 4.6vw, 23px);
+  font-weight: 800;
+  line-height: 1.5;
+  color: #333;
+  white-space: pre-line;
 }
 
 /* ===== ボスバトル画面（VSなし・作曲家大きく上中段・選択下にプレイヤー） ===== */
@@ -680,6 +821,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   background: #fff8ee;
   padding: 0.9dvh 3vw;
   border-radius: 14px;
+  line-height: 1.35;
 }
 
 .quiz-options-stack{
@@ -732,8 +874,8 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   padding: 1.1dvh 3.2vw;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2.5vw;
+  justify-content: flex-start;
+  gap: 3vw;
   box-shadow: 0 4px 12px rgba(0,0,0,.08);
 }
 .quiz-player-img-wrap{
@@ -769,15 +911,6 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.mini-gray-btn{
-  font-size: clamp(14px, 3.8vw, 18px) !important;
-  padding: 1.1dvh 3.2vw !important;
-  border-radius: 12px !important;
-  flex-shrink: 0;
-  --k1:#a8a8a8;
-  --k2:#8e8e8e;
-  --k3:#6e6e6e;
 }
 
 /* ===== 練習モード問題カード（横幅いっぱい・特大） ===== */
