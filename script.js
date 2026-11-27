@@ -284,6 +284,87 @@ const COMPOSER_ICON_MAP = {
   "ヨハネス・ブラームス": "picture/13_ブラームス.png"
 };
 
+const COMPOSER_META_MAP = {
+  "エリック・サティ": {
+    years: "1866年 – 1925年",
+    prompt: "「ちょっとふしぎで、おちつくわしの曲、どれだかわかるかな？」",
+    correctMsg: "ふふっ、よく耳をすませたね！サティの世界へようこそ。",
+    wrongMsg: "おっと、ちがう曲みたいだね。家具のようにゆらゆら聴いてみて！"
+  },
+  "ヴォルフガング・アマデウス・モーツァルト": {
+    years: "1756年 – 1791年",
+    prompt: "「きらきら光るような、たのしいぼくの曲を当ててみてね！」",
+    correctMsg: "やったね！ぼくのメロディがキミにとどいたよ！",
+    wrongMsg: "うーん、おしいな！もういちどよく聴いてみよう！"
+  },
+  "アントニン・ドヴォルザーク": {
+    years: "1841年 – 1904年",
+    prompt: "「ふるさとを思うあたたかいメロディ、聴きわけられるかな？」",
+    correctMsg: "すばらしい！心の奥までひびいたようだね。",
+    wrongMsg: "ちょっぴりちがうよ。風や森のけしきを思い浮かべてみて！"
+  },
+  "ルートヴィヒ・ヴァン・ベートーヴェン": {
+    years: "1770年 – 1827年",
+    prompt: "「魂をゆさぶるわしの曲、しっかりと聴きわけてみよ！」",
+    correctMsg: "見事だ！その集中力、本物だな！",
+    wrongMsg: "まだだ！もっと音を研ぎ澄ませて聴き直すがよい！"
+  },
+  "モデスト・ムソルグスキー": {
+    years: "1839年 – 1881年",
+    prompt: "「絵のなかを歩くようなわしの曲、どれか見つけられるかな？」",
+    correctMsg: "お見事！絵の情景が目の前に浮かんだようだね！",
+    wrongMsg: "むむ、別の絵の曲のようだぞ。もう一度よく聴いてみよう！"
+  },
+  "ロベルト・シューマン": {
+    years: "1810年 – 1856年",
+    prompt: "「ゆめうつつや物語のようなぼくの曲、わかるかな？」",
+    correctMsg: "すごいよ！ぼくの物語をちゃんと受けとめてくれたね！",
+    wrongMsg: "あれれ、ちがうページをめくっちゃったかな？もういちど！"
+  },
+  "クロード・ドビュッシー": {
+    years: "1862年 – 1918年",
+    prompt: "「光や水のゆらめきのようなわしの曲、感じとれるかな？」",
+    correctMsg: "とても繊細だね。光のしずくまで聴こえていたよ。",
+    wrongMsg: "すこしちがう色のようだね。もういちど静かに聴いてみよう。"
+  },
+  "テクラ・バダチェフスカ": {
+    years: "1834年 – 1861年",
+    prompt: "「やさしい祈りをこめたわたしの曲、どれだかわかるかしら？」",
+    correctMsg: "すてきです！やさしい気持ちがしっかり伝わりましたね。",
+    wrongMsg: "あら、ちがう曲のようですわ。もう一度よく聴いてみてね。"
+  },
+  "フレデリック・ショパン": {
+    years: "1810年 – 1849年",
+    prompt: "「ピアノが歌うようなぼくの曲、どれか当てられるかな？」",
+    correctMsg: "ブラボー！ピアノの歌声がキミにちゃんと聴こえたんだね！",
+    wrongMsg: "うーん、ちがう旋律だね。もう一度よく耳を傾けてみて！"
+  },
+  "フランツ・リスト": {
+    years: "1811年 – 1886年",
+    prompt: "「あざやかでドラマチックなわしの曲、聴きわけられるか？」",
+    correctMsg: "素晴らしい！華やかな響きをしっかりつかまえたな！",
+    wrongMsg: "ほう、そこを間違えるとはな！もう一度よく聴いてみろ！"
+  },
+  "フランツ・シューベルト": {
+    years: "1797年 – 1828年",
+    prompt: "「うたうように流れるぼくの曲、どれだかわかるかな？」",
+    correctMsg: "うれしいな！メロディがキミの心にすっと入ったね！",
+    wrongMsg: "おっと、ちがう曲みたいだ。もう一度ゆっくり聴いてみよう！"
+  },
+  "フェリックス・メンデルスゾーン": {
+    years: "1809年 – 1847年",
+    prompt: "「さわやかでかろやかなぼくの曲、当てられるかな？」",
+    correctMsg: "やったね！春風のようにさわやかな正解だよ！",
+    wrongMsg: "ちょっとちがうみたいだ。もういちど軽やかに聴いてみよう！"
+  },
+  "ヨハネス・ブラームス": {
+    years: "1833年 – 1897年",
+    prompt: "「深みと情熱のあるわしの曲、しっかり聴きわけてみよ。」",
+    correctMsg: "よくやった！音の重みまでしっかり受けとめたな。",
+    wrongMsg: "ちがうぞ。焦らず、もう一度よく聴いてみるんだ。"
+  }
+};
+
 function getComposerIcon(name){
   const raw = COMPOSER_ICON_MAP[name] || "icon/char01.png";
   return encodeURI(raw);
@@ -300,18 +381,32 @@ MUSIC_DATABASE.forEach(item => {
   }
   COMPOSERS_MAP[item.composer].tracks.push(item);
 });
-const STORY_CHAPTERS = Object.keys(COMPOSERS_MAP).map((compName, idx) => ({
-  id: idx,
-  chapNum: `第${idx+1}章`,
-  composer: compName,
-  title: `第${idx+1}章 〜${compName}〜`,
-  icon: COMPOSERS_MAP[compName].icon,
-  tracks: COMPOSERS_MAP[compName].tracks
-}));
+const STORY_CHAPTERS = Object.keys(COMPOSERS_MAP).map((compName, idx) => {
+  const meta = COMPOSER_META_MAP[compName] || {
+    years: "",
+    prompt: `「わし（${compName}）の曲を当ててみたまえ！」`,
+    correctMsg: "正解！よく聴いているね！",
+    wrongMsg: "不正解…！もう一度よく聴いてみよう！"
+  };
+  return {
+    id: idx,
+    chapNum: `第${idx+1}章`,
+    composer: compName,
+    years: meta.years,
+    prompt: meta.prompt,
+    correctMsg: meta.correctMsg,
+    wrongMsg: meta.wrongMsg,
+    title: `第${idx+1}章 〜${compName}〜`,
+    icon: COMPOSERS_MAP[compName].icon,
+    tracks: COMPOSERS_MAP[compName].tracks
+  };
+});
 
 var currentChapterIdx = 0;
 var currentStoryStage = 0;
 var previewAudioObj = null;
+var isQuizTransitioning = false;
+var isChapterIntroRunning = false;
 
 var BPM = 90, BEAT = 60 / BPM, TOTAL = 8;
 function setBpm(v){ BPM = v; BEAT = 60 / v; }
@@ -522,7 +617,7 @@ var state = "idle", useDemo = true, canTap = false;
 var t0, countStart, recStart, recEnd;
 var taps = [], active = {}, rafId = 0, busyUntil = 0;
 var calLag = 0, cal = null, calTimer = 0;
-var COUNT_WORDS = ["いち","に","さん","はい！"];
+var COUNT_WORDS = ["１","２","３","４"];
 
 function getHighScore(lvlIdx, probIdx){
   if(!currentAccount) return 0;
@@ -558,20 +653,65 @@ var topBgm = new Audio("Sound/BGM/ちょっと優雅なひとときを.mp3");
 topBgm.loop = true;
 topBgm.preload = "auto";
 topBgm.volume = 0.45;
+
+var storyBgm = new Audio("Sound/BGM/二人だけの悲劇.mp3");
+storyBgm.loop = true;
+storyBgm.preload = "auto";
+storyBgm.volume = 0.45;
+
+var pracBgm = new Audio("Sound/BGM/手作りスコーン.mp3");
+pracBgm.loop = true;
+pracBgm.preload = "auto";
+pracBgm.volume = 0.45;
+
 var startTapSound = new Audio("Sound/BGM/システム決定音_6.mp3");
 startTapSound.preload = "auto";
 startTapSound.volume = 0.8;
-function startTopBgm(){
-  if(topBgm.paused){
-    topBgm.currentTime = 0;
-    var p = topBgm.play();
+
+var quizCorrectSound = new Audio("Sound/BGM/正解音.mp3");
+quizCorrectSound.preload = "auto";
+quizCorrectSound.volume = 0.85;
+
+var quizWrongSound = new Audio("Sound/BGM/ピアノの和音.mp3");
+quizWrongSound.preload = "auto";
+quizWrongSound.volume = 0.85;
+
+var currentScreenId = "";
+
+function playBgmTrack(audioObj){
+  [topBgm, storyBgm, pracBgm].forEach(function(trk){
+    if(trk !== audioObj && !trk.paused){
+      trk.pause();
+      trk.currentTime = 0;
+    }
+  });
+  if(!audioObj) return;
+  if(audioObj.paused){
+    audioObj.currentTime = 0;
+    var p = audioObj.play();
     if(p && p.catch) p.catch(function(){});
   }
 }
-function stopTopBgm(){
-  topBgm.pause();
-  topBgm.currentTime = 0;
+
+function stopAllScreenBgm(){
+  [topBgm, storyBgm, pracBgm].forEach(function(trk){
+    trk.pause();
+    trk.currentTime = 0;
+  });
 }
+
+function syncBgmForScreen(screenId){
+  if(screenId === "sTop"){
+    playBgmTrack(topBgm);
+  } else if(screenId === "sStoryChapters" || screenId === "sStoryMap"){
+    playBgmTrack(storyBgm);
+  } else if(screenId === "sPrac"){
+    playBgmTrack(pracBgm);
+  } else {
+    stopAllScreenBgm();
+  }
+}
+
 function playNavSound(){
   try {
     startTapSound.currentTime = 0;
@@ -579,6 +719,15 @@ function playNavSound(){
     if(p && p.catch) p.catch(function(){});
   } catch(e) {}
 }
+
+function playEffectAudio(audioObj){
+  try {
+    audioObj.currentTime = 0;
+    var p = audioObj.play();
+    if(p && p.catch) p.catch(function(){});
+  } catch(e) {}
+}
+
 function enterFromStart(){
   var startScreen = $("sStart");
   if(!startScreen || startScreen.dataset.leaving === "1") return;
@@ -593,6 +742,7 @@ function enterFromStart(){
 }
 
 function show(id){
+  currentScreenId = id;
   ["sStart","sTop","sSet","sPrac","sGame","sStoryChapters","sStoryMap","sQuiz","sCharSelect","sNewCharIcon","sNewCharName"].forEach(function(s){
     var elScreen = $(s);
     if(elScreen) elScreen.classList.toggle("on", s === id);
@@ -605,20 +755,23 @@ function show(id){
     } else if(id === "sGame"){
       backBtn.style.display = "block";
       backBtn.textContent = isStoryPlay ? "← マップへ" : "← もんだいへ";
-    } else if(id === "sStoryMap" || id === "sQuiz"){
+    } else if(id === "sStoryMap"){
       backBtn.style.display = "block";
-      backBtn.textContent = "← 章へ";
+      backBtn.textContent = "← 章の選択へ";
+    } else if(id === "sQuiz"){
+      backBtn.style.display = "block";
+      backBtn.textContent = "← 章へ戻る";
     } else {
       backBtn.style.display = "block";
       backBtn.textContent = "← トップへ";
     }
   }
 
-  if(id === "sTop") startTopBgm();
-  else stopTopBgm();
+  syncBgmForScreen(id);
 }
 
 function goBackAction(){
+  if(isChapterIntroRunning || isQuizTransitioning) return;
   playNavSound();
   if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
   if($("sGame") && $("sGame").classList.contains("on")){
@@ -629,12 +782,14 @@ function goBackAction(){
     releaseAll();
     stopAll();
     if(isStoryPlay){
-      openStoryMap(currentChapterIdx);
+      openStoryMap(currentChapterIdx, false);
     } else {
       renderProblemList(selectedPracLevel);
       show("sPrac");
     }
-  } else if(($("sStoryMap") && $("sStoryMap").classList.contains("on")) || ($("sQuiz") && $("sQuiz").classList.contains("on"))){
+  } else if($("sQuiz") && $("sQuiz").classList.contains("on")){
+    openStoryMap(currentChapterIdx, false);
+  } else if($("sStoryMap") && $("sStoryMap").classList.contains("on")){
     openStoryChapters();
   } else {
     goTop();
@@ -1010,7 +1165,7 @@ if($("nextBtn")){
     if(!guard()) return;
     playNavSound();
     if(isStoryPlay){
-      openStoryMap(currentChapterIdx);
+      openStoryMap(currentChapterIdx, false);
     } else {
       var lvlObj = levels[currentLevelIndex];
       var nextProbIdx = currentProblemIndex + 1;
@@ -1083,26 +1238,81 @@ function openStoryChapters(){
 
   listEl.querySelectorAll(".chapter-card").forEach(card => {
     card.addEventListener("click", function(){
+      if(isChapterIntroRunning) return;
       playNavSound();
       const chId = parseInt(this.getAttribute("data-chapter"), 10);
-      openStoryMap(chId);
+      playChapterIntroAndOpenMap(chId);
     });
   });
 }
 
-function openStoryMap(chapterIdx){
+function playChapterIntroAndOpenMap(chapterIdx){
+  const chapter = STORY_CHAPTERS[chapterIdx];
+  const overlay = $("chapterIntroOverlay");
+  const content = $("chapterIntroContent");
+  const titleEl = $("chapterIntroTitle");
+  const imgEl = $("chapterIntroImg");
+  const yearsEl = $("chapterIntroYears");
+
+  if(!overlay || !content || !titleEl || !imgEl || !yearsEl){
+    openStoryMap(chapterIdx, true);
+    return;
+  }
+
+  isChapterIntroRunning = true;
+  stopAllScreenBgm();
+
+  titleEl.textContent = `${chapter.chapNum} 〜${chapter.composer}〜`;
+  yearsEl.textContent = chapter.years || "";
+  content.classList.remove("shown");
+  setImgSrcWithLoading(imgEl, chapter.icon);
+
+  overlay.style.display = "flex";
+  void overlay.offsetWidth;
+  overlay.classList.add("visible");
+
+  setTimeout(function(){
+    content.classList.add("shown");
+  }, 550);
+
+  setTimeout(function(){
+    content.classList.remove("shown");
+  }, 2450);
+
+  setTimeout(function(){
+    overlay.classList.remove("visible");
+    openStoryMap(chapterIdx, true);
+    setTimeout(function(){
+      overlay.style.display = "none";
+      isChapterIntroRunning = false;
+    }, 750);
+  }, 3200);
+}
+
+function openStoryMap(chapterIdx, resumeBgm){
   currentChapterIdx = chapterIdx;
   const chapter = STORY_CHAPTERS[chapterIdx];
 
   show("sStoryMap");
+  if(resumeBgm !== false){
+    playBgmTrack(storyBgm);
+  }
   $("mapChapterTitle").textContent = chapter.title;
 
-  let s0 = getStoryScore(chapterIdx, 0);
-  let s1 = getStoryScore(chapterIdx, 1);
-  let s2 = getStoryScore(chapterIdx, 2);
-  $("starScore0").textContent = s0;
-  $("starScore1").textContent = s1;
-  $("starScore2").textContent = s2;
+  let scores = [
+    getStoryScore(chapterIdx, 0),
+    getStoryScore(chapterIdx, 1),
+    getStoryScore(chapterIdx, 2)
+  ];
+
+  scores.forEach(function(sc, idx){
+    const badgeNum = $("starScore" + idx);
+    if(badgeNum) badgeNum.textContent = sc;
+    const nodeEl = document.querySelector(`.map-stage-node[data-stage="${idx}"]`);
+    if(nodeEl){
+      nodeEl.classList.toggle("cleared", sc >= 80);
+    }
+  });
 
   const bossNode = $("bossNode");
   const bossIcon = $("mapBossIcon");
@@ -1115,6 +1325,7 @@ function openStoryMap(chapterIdx){
 
   document.querySelectorAll(".map-stage-node").forEach(node => {
     node.onclick = function(){
+      if(isChapterIntroRunning) return;
       playNavSound();
       let stageNum = parseInt(this.getAttribute("data-stage"), 10);
       startStoryStage(chapterIdx, stageNum);
@@ -1122,6 +1333,7 @@ function openStoryMap(chapterIdx){
   });
 
   bossNode.onclick = function(){
+    if(isChapterIntroRunning) return;
     if(!canChallengeBoss){
       alert("ステージ1〜3をすべて80点以上でクリアすると挑戦できるよ！");
       return;
@@ -1129,13 +1341,6 @@ function openStoryMap(chapterIdx){
     playNavSound();
     startComposerQuiz(chapterIdx);
   };
-}
-
-if($("backToChaptersBtn")){
-  $("backToChaptersBtn").addEventListener("click", function(){
-    playNavSound();
-    openStoryChapters();
-  });
 }
 
 function startStoryStage(chapterIdx, stageNum){
@@ -1151,15 +1356,48 @@ function startStoryStage(chapterIdx, stageNum){
   startCal();
 }
 
+function showQuizResultAndMove(isCorrect, badgeText, messageText, onComplete){
+  const overlay = $("quizResultOverlay");
+  const card = $("quizResultCard");
+  const badgeEl = $("quizResultBadge");
+  const textEl = $("quizResultText");
+
+  if(!overlay || !card || !badgeEl || !textEl){
+    if(onComplete) onComplete();
+    return;
+  }
+
+  isQuizTransitioning = true;
+  card.classList.remove("correct", "wrong");
+  card.classList.add(isCorrect ? "correct" : "wrong");
+  badgeEl.textContent = badgeText;
+  textEl.textContent = messageText;
+
+  overlay.style.display = "flex";
+  void overlay.offsetWidth;
+  overlay.classList.add("visible");
+
+  setTimeout(function(){
+    overlay.classList.remove("visible");
+    setTimeout(function(){
+      overlay.style.display = "none";
+      isQuizTransitioning = false;
+      if(onComplete) onComplete();
+    }, 550);
+  }, 2300);
+}
+
 function startComposerQuiz(chapterIdx){
   const chapter = STORY_CHAPTERS[chapterIdx];
+  isQuizTransitioning = false;
   show("sQuiz");
+  stopAllScreenBgm();
 
   setImgSrcWithLoading($("quizPlayerIcon"), currentAccount ? currentAccount.icon : ICONS[0]);
   if($("quizPlayerName")) $("quizPlayerName").textContent = currentAccount ? currentAccount.nickname : "あなた";
   setImgSrcWithLoading($("quizComposerIcon"), chapter.icon);
   $("quizComposerName").textContent = chapter.composer;
-  $("composerMessage").textContent = `「わし（${chapter.composer}）の曲を当ててみたまえ！」`;
+  $("composerMessage").textContent = chapter.prompt;
 
   const listEl = $("quizOptionsList");
 
@@ -1187,6 +1425,7 @@ function startComposerQuiz(chapterIdx){
 
     previewBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      if(isQuizTransitioning) return;
       if(previewAudioObj){ previewAudioObj.pause(); }
       previewAudioObj = new Audio(filePath);
       previewAudioObj.volume = 0.6;
@@ -1196,26 +1435,31 @@ function startComposerQuiz(chapterIdx){
     });
 
     card.addEventListener("click", () => {
+      if(isQuizTransitioning) return;
       if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
 
       if(isCorr){
-        playTestBuzzer('correct');
-        alert(`正解！さすがよく聴いているね！\n${chapter.composer}の章をクリアした！✨`);
-        openStoryChapters();
+        playEffectAudio(quizCorrectSound);
+        showQuizResultAndMove(
+          true,
+          "⭕ 正解！",
+          `${chapter.composer}\n${chapter.correctMsg}`,
+          function(){
+            openStoryChapters();
+          }
+        );
       } else {
-        playTestBuzzer('wrong');
-        alert(`不正解…！\n${chapter.composer}「もっとよく聴いてから出直してきなさい！」`);
-        openStoryMap(chapterIdx);
+        playEffectAudio(quizWrongSound);
+        showQuizResultAndMove(
+          false,
+          "❌ 不正解…",
+          `${chapter.composer}\n${chapter.wrongMsg}`,
+          function(){
+            openStoryMap(chapterIdx, true);
+          }
+        );
       }
     });
-  });
-}
-
-if($("backToMapFromQuizBtn")){
-  $("backToMapFromQuizBtn").addEventListener("click", function(){
-    playNavSound();
-    if(previewAudioObj){ previewAudioObj.pause(); previewAudioObj = null; }
-    openStoryMap(currentChapterIdx);
   });
 }
 
