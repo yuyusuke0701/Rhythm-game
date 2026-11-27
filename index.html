@@ -109,22 +109,20 @@
       <div class="map-stages-guide">80点以上でクリア！3つそろえてボスへ挑戦</div>
       <div class="map-stages-row">
         <div class="map-stage-node" data-stage="0">
-          <div class="stage-circle">ステージ<br>1</div>
+          <div id="stageCircle0" class="stage-circle">ステージ<br>1</div>
           <div class="stage-star-badge">★ <span id="starScore0">0</span>点</div>
         </div>
         <div class="map-stage-node" data-stage="1">
-          <div class="stage-circle">ステージ<br>2</div>
+          <div id="stageCircle1" class="stage-circle">ステージ<br>2</div>
           <div class="stage-star-badge">★ <span id="starScore1">0</span>点</div>
         </div>
         <div class="map-stage-node" data-stage="2">
-          <div class="stage-circle">ステージ<br>3</div>
+          <div id="stageCircle2" class="stage-circle">ステージ<br>3</div>
           <div class="stage-star-badge">★ <span id="starScore2">0</span>点</div>
         </div>
       </div>
     </div>
   </div>
-
-  <button id="backToChaptersBtn" class="sub-back-btn">← 章のせんたくへ</button>
 </div>
 
 <!-- ボスバトル画面（作曲家クイズ） -->
@@ -153,7 +151,6 @@
       <span class="quiz-player-tag">PLAYER</span>
       <span id="quizPlayerName">あなた</span>
     </div>
-    <button id="backToMapFromQuizBtn" class="mini-gray-btn">← マップへ</button>
   </div>
 </div>
 
@@ -196,6 +193,26 @@
   <div id="tapArea"><div id="fx"></div><button id="tap" class="off">タップ</button></div>
   <div id="playBtns" class="row" style="display:none"><button id="demoBtn">お手本</button><button id="mineBtn">じぶん</button></div>
   <div id="nextBtns" class="row" style="display:none"><button id="againBtn">もういちど</button><button id="nextBtn">つぎのもんだい</button><label class="opt"><input id="judgeOpt" type="checkbox" checked>採点</label></div>
+</div>
+
+<!-- 章イントロ（暗転＆フェードイン／フェードアウト演出） -->
+<div id="chapterIntroOverlay" class="chapter-intro-overlay" aria-hidden="true">
+  <div id="chapterIntroContent" class="chapter-intro-content">
+    <div id="chapterIntroTitle" class="chapter-intro-title"></div>
+    <div class="img-load-frame chapter-intro-img-wrap">
+      <span class="img-loading-text">読み込み中…</span>
+      <img id="chapterIntroImg" src="" alt="作曲家">
+    </div>
+    <div id="chapterIntroYears" class="chapter-intro-years"></div>
+  </div>
+</div>
+
+<!-- クイズ結果トースト演出 -->
+<div id="quizResultOverlay" class="quiz-result-overlay" aria-hidden="true">
+  <div id="quizResultCard" class="quiz-result-card">
+    <div id="quizResultBadge" class="quiz-result-badge"></div>
+    <div id="quizResultText" class="quiz-result-text"></div>
+  </div>
 </div>
 
 <button id="profileBtn">👤</button>
