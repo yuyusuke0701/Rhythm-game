@@ -419,7 +419,7 @@ select{font-size:clamp(15px,4vw,22px);padding:4px 8px;border-radius:10px;border:
 .setrow button.st{flex:0 0 auto}
 button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 
-/* ===== 章選択カード（1画面に約4章見える大きさ・イラスト特大・文字大きめ＆改行調整） ===== */
+/* ===== 章選択カード ===== */
 .chapter-card{
   display: flex;
   align-items: center;
@@ -496,7 +496,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   white-space: nowrap;
 }
 
-/* ===== ステージ選択マップ画面：枠サイズに合わせてイラスト特大 ===== */
+/* ===== ステージ選択マップ画面 ===== */
 #sStoryMap{
   justify-content: space-between;
   padding-top: 6.8dvh;
@@ -763,7 +763,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   white-space: pre-line;
 }
 
-/* ===== ボスバトル画面（VSなし・作曲家大きく上中段・選択下にプレイヤー） ===== */
+/* ===== ボスバトル画面 ===== */
 #sQuiz{
   justify-content: space-between;
   padding-top: 6.6dvh;
@@ -913,7 +913,7 @@ button.st{font-size:22px;padding:2px 0;width:44px;border-radius:12px;user-select
   text-overflow: ellipsis;
 }
 
-/* ===== 練習モード問題カード（横幅いっぱい・特大） ===== */
+/* ===== 練習モード問題カード ===== */
 .prac-problem-card{
   display: flex;
   flex-direction: column;
